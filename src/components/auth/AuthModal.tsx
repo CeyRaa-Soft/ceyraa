@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useUIStore } from '@/store/useStore';
-import { useAuth } from '@/firebase';
-import { 
-  initiateEmailSignIn, 
-  initiateEmailSignUp, 
-  initiateGoogleSignIn,
-  initiateTwitterSignIn 
-} from '@/firebase/non-blocking-login';
+import { useUIStore, useAuthStore } from '@/store/useStore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 
 export default function AuthModal() {
   const { isAuthModalOpen, setAuthModal } = useUIStore();
-  const auth = useAuth();
+  const { login } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
@@ -25,22 +18,15 @@ export default function AuthModal() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password) {
-      if (isLogin) {
-        initiateEmailSignIn(auth, email, password);
-      } else {
-        initiateEmailSignUp(auth, email, password);
-      }
+      // Simulate login with local store
+      login(email);
       setAuthModal(false);
     }
   };
 
-  const handleGoogleSignIn = () => {
-    initiateGoogleSignIn(auth);
-    setAuthModal(false);
-  };
-
-  const handleTwitterSignIn = () => {
-    initiateTwitterSignIn(auth);
+  const handleSocialSignIn = (provider: string) => {
+    // Simulate social sign in
+    login(`${provider.toLowerCase()}@example.com`);
     setAuthModal(false);
   };
 
@@ -58,14 +44,14 @@ export default function AuthModal() {
           {/* Social Logins */}
           <div className="grid grid-cols-1 gap-4">
             <Button 
-              onClick={handleGoogleSignIn}
+              onClick={() => handleSocialSignIn('Google')}
               variant="outline" 
               className="rounded-full py-7 text-[10px] tracking-[0.4em] font-bold border-primary/10 hover:bg-primary/5 transition-all"
             >
               CONTINUE WITH GOOGLE
             </Button>
             <Button 
-              onClick={handleTwitterSignIn}
+              onClick={() => handleSocialSignIn('Twitter')}
               variant="outline" 
               className="rounded-full py-7 text-[10px] tracking-[0.4em] font-bold border-primary/10 hover:bg-primary/5 transition-all"
             >
