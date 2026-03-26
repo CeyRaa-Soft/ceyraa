@@ -1,0 +1,193 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * CeyRaa Luxury Fashion - Security Rules Policy
+     * 
+     * Core Philosophy:
+     * This ruleset implements a strict user-ownership model for private data (Profiles, Carts, Orders) 
+     * and a Role-Based Access Control (RBAC) model for administrative content management. 
+     * Security is enforced primarily through hierarchical path wildcards and verified authentication.
+     * 
+     * Data Structure:
+     * 1. Public Catalog: /products, /categories, /images, and /banners are publicly readable but 
+     *    require administrative privileges for any modifications.
+     * 2. Private User Data: Nested under /users/{userId}/. This ensures that listing operations 
+     *    are naturally scoped to the authenticated user.
+     * 3. Administrative Roles: Defined in /roles_admin/{userId}. The presence of a document 
+     *    here grants global write access to the catalog.
+     * 
+     * Key Security Decisions:
+     * - User Listing: Listing the top-level /users collection is restricted to admins to prevent 
+     *   enumeration. Users can 'get' their own profile.
+     * - Denormalization: While rules primarily use path-based authorization, internal 'userId' 
+     *   fields are validated on creation to ensure relational integrity between the path and the data.
+     * - Order Integrity: Users can create orders, but only administrators can update order 
+     *   statuses (e.g., 'Shipped', 'Delivered'). Orders cannot be deleted by users.
+     */
+
+    // --- Helper Functions ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    function isExistingAdmin() {
+      return resource != null && isAdmin();
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for the User profile entity.
+     * @path /users/{userId}
+     * @allow Authenticated user (get), Admins (get, list, update, delete), Self-creation (create).
+     * @deny Unauthenticated access, users listing other users.
+     * @principle Ownership and RBAC.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId) || isExistingAdmin();
+      allow delete: if isAdmin();
+
+      /**
+       * @description Rules for shopping carts owned by a user.
+       * @path /users/{userId}/carts/{cartId}
+       * @allow Owner (get, list, create, update, delete), Admins (get, list).
+       * @deny Cross-user access.
+       * @principle Path-based ownership validation.
+       */
+      match /carts/{cartId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+
+        /**
+         * @description Rules for items within a specific cart.
+         * @path /users/{userId}/carts/{cartId}/items/{cartItemId}
+         * @allow Owner (get, list, create, update, delete).
+         * @deny Direct modification by non-owners or admins.
+         * @principle Relational integrity through path wildcards.
+         */
+        match /items/{cartItemId} {
+          allow get, list: if isOwner(userId) || isAdmin();
+          allow create: if isOwner(userId);
+          allow update: if isExistingOwner(userId);
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+
+      /**
+       * @description Rules for orders placed by a user.
+       * @path /users/{userId}/orders/{orderId}
+       * @allow Owner (get, list, create), Admins (get, list, update, delete).
+       * @deny User-side updates or deletions of historic orders.
+       * @principle Preservation of transaction records.
+       */
+      match /orders/{orderId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isAdmin();
+        allow delete: if isAdmin();
+
+        /**
+         * @description Rules for specific line items within an order.
+         * @path /users/{userId}/orders/{orderId}/items/{orderItemId}
+         * @allow Owner (get, list), Admins (get, list, create, update, delete).
+         * @deny Post-creation user modifications.
+         * @principle Immutable order history for consumers.
+         */
+        match /items/{orderItemId} {
+          allow get, list: if isOwner(userId) || isAdmin();
+          allow create, update, delete: if isAdmin();
+        }
+      }
+    }
+
+    /**
+     * @description Administrative roles collection (DBAC).
+     * @path /roles_admin/{userId}
+     * @allow Admins (get, list, write).
+     * @deny Public access or self-promotion to admin.
+     * @principle Restricted administrative access control.
+     */
+    match /roles_admin/{userId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    /**
+     * @description Product categories.
+     * @path /categories/{categoryId}
+     * @allow Public (get, list), Admins (write).
+     * @deny Unauthorized modifications.
+     * @principle Public read with admin-only writes.
+     */
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Product catalog and nested variants/sizes.
+     * @path /products/{productId}
+     * @allow Public (get, list), Admins (write).
+     * @deny Unauthorized modifications.
+     * @principle Global read access for storefront browsing.
+     */
+    match /products/{productId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /variants/{variantId} {
+        allow get, list: if true;
+        allow create, update, delete: if isAdmin();
+
+        match /sizes/{sizeId} {
+          allow get, list: if true;
+          allow create, update, delete: if isAdmin();
+        }
+      }
+    }
+
+    /**
+     * @description Globally referenced images.
+     * @path /images/{imageId}
+     * @allow Public (get, list), Admins (write).
+     * @deny Unauthorized modifications.
+     * @principle Centralized asset management.
+     */
+    match /images/{imageId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Homepage promotional banners.
+     * @path /banners/{bannerId}
+     * @allow Public (get, list), Admins (write).
+     * @deny Unauthorized modifications.
+     * @principle Public read with admin-only writes.
+     */
+    match /banners/{bannerId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}

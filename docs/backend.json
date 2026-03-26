@@ -1,0 +1,580 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a registered user of the CeyRaa platform, storing basic profile information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address, used for login and communication.",
+          "format": "email"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The name of the user as it should be displayed on the platform."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the user account was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the user's profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "displayName",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Defines a product category for organizing and filtering products.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Category entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the product category (e.g., 'Dresses', 'Footwear')."
+        },
+        "slug": {
+          "type": "string",
+          "description": "A URL-friendly, unique identifier for the category."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the category."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL for an image representing the category, if applicable.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "slug",
+        "description"
+      ]
+    },
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a single product available for sale, including its core information and pricing.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Product entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the product."
+        },
+        "slug": {
+          "type": "string",
+          "description": "A URL-friendly, unique identifier for the product."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the product."
+        },
+        "basePrice": {
+          "type": "number",
+          "description": "The original price of the product before any discounts."
+        },
+        "discountedPrice": {
+          "type": "number",
+          "description": "The current discounted price of the product, if applicable. If no discount, this might be null or same as basePrice."
+        },
+        "isFeatured": {
+          "type": "boolean",
+          "description": "Indicates if the product is marked as a featured item."
+        },
+        "isNewArrival": {
+          "type": "boolean",
+          "description": "Indicates if the product is a new arrival."
+        },
+        "categoryIds": {
+          "type": "array",
+          "description": "References to Category entities. (Relationship: Category N:N Product)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the product was added to the catalog.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the product information was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "slug",
+        "description",
+        "basePrice",
+        "isFeatured",
+        "isNewArrival",
+        "categoryIds",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProductVariant": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProductVariant",
+      "type": "object",
+      "description": "Represents a specific color variant of a product, linking to its unique images and available sizes.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ProductVariant entity."
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the parent Product. (Relationship: Product 1:N ProductVariant)"
+        },
+        "colorName": {
+          "type": "string",
+          "description": "The name of the color variant (e.g., 'Midnight Black', 'Pearl White')."
+        },
+        "colorHex": {
+          "type": "string",
+          "description": "The hexadecimal code for the color, used for UI swatches (e.g., '#0A0A0A')."
+        },
+        "imageIds": {
+          "type": "array",
+          "description": "References to Image entities specifically for this product variant. (Relationship: Image N:N ProductVariant)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "productId",
+        "colorName",
+        "colorHex",
+        "imageIds"
+      ]
+    },
+    "SizeVariant": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SizeVariant",
+      "type": "object",
+      "description": "Represents a specific size and its stock quantity for a given product color variant.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SizeVariant entity."
+        },
+        "productVariantId": {
+          "type": "string",
+          "description": "Reference to the parent ProductVariant. (Relationship: ProductVariant 1:N SizeVariant)"
+        },
+        "size": {
+          "type": "string",
+          "description": "The size of the product variant (e.g., 'S', 'M', 'L', 'EU38', 'US7')."
+        },
+        "stock": {
+          "type": "number",
+          "description": "The current quantity of this specific size variant in stock."
+        }
+      },
+      "required": [
+        "id",
+        "productVariantId",
+        "size",
+        "stock"
+      ]
+    },
+    "Image": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Image",
+      "type": "object",
+      "description": "Stores details about an image, primarily used for product display.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Image entity."
+        },
+        "url": {
+          "type": "string",
+          "description": "The URL where the image is hosted.",
+          "format": "uri"
+        },
+        "altText": {
+          "type": "string",
+          "description": "Alternative text for the image, important for accessibility."
+        },
+        "width": {
+          "type": "number",
+          "description": "The width of the image in pixels."
+        },
+        "height": {
+          "type": "number",
+          "description": "The height of the image in pixels."
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "An integer indicating the display order of the image within a gallery or list."
+        }
+      },
+      "required": [
+        "id",
+        "url",
+        "altText",
+        "sortOrder"
+      ]
+    },
+    "Cart": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Cart",
+      "type": "object",
+      "description": "Represents a user's shopping cart, containing items they intend to purchase.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Cart entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns this cart. (Relationship: User 1:N Cart)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the cart was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the cart was last updated (e.g., items added/removed).",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CartItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CartItem",
+      "type": "object",
+      "description": "Represents a single product item with a specific size and quantity within a user's shopping cart.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CartItem entity."
+        },
+        "cartId": {
+          "type": "string",
+          "description": "Reference to the parent Cart. (Relationship: Cart 1:N CartItem)"
+        },
+        "productVariantId": {
+          "type": "string",
+          "description": "Reference to the specific ProductVariant (color) added to the cart."
+        },
+        "sizeVariantId": {
+          "type": "string",
+          "description": "Reference to the specific SizeVariant (size and stock) added to the cart."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The number of units of this specific item in the cart."
+        },
+        "priceAtAddition": {
+          "type": "number",
+          "description": "The price of the item when it was added to the cart, useful for tracking price changes."
+        },
+        "isSelectedForCheckout": {
+          "type": "boolean",
+          "description": "Indicates if this item is selected by the user to proceed to checkout."
+        }
+      },
+      "required": [
+        "id",
+        "cartId",
+        "productVariantId",
+        "sizeVariantId",
+        "quantity",
+        "priceAtAddition",
+        "isSelectedForCheckout"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents a completed or in-progress purchase made by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Order entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who placed the order. (Relationship: User 1:N Order)"
+        },
+        "orderDate": {
+          "type": "string",
+          "description": "Timestamp when the order was placed.",
+          "format": "date-time"
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total monetary amount of the order, including all items, taxes, and shipping."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the order (e.g., 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled')."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The method used for payment (e.g., 'Bank Transfer', 'Stripe')."
+        },
+        "shippingStreet": {
+          "type": "string",
+          "description": "Street address for shipping."
+        },
+        "shippingCity": {
+          "type": "string",
+          "description": "City for shipping."
+        },
+        "shippingState": {
+          "type": "string",
+          "description": "State or province for shipping."
+        },
+        "shippingPostalCode": {
+          "type": "string",
+          "description": "Postal code for shipping."
+        },
+        "shippingCountry": {
+          "type": "string",
+          "description": "Country for shipping."
+        },
+        "billingStreet": {
+          "type": "string",
+          "description": "Street address for billing."
+        },
+        "billingCity": {
+          "type": "string",
+          "description": "City for billing."
+        },
+        "billingState": {
+          "type": "string",
+          "description": "State or province for billing."
+        },
+        "billingPostalCode": {
+          "type": "string",
+          "description": "Postal code for billing."
+        },
+        "billingCountry": {
+          "type": "string",
+          "description": "Country for billing."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the order record was created in the system.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the order record was last updated (e.g., status change).",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "orderDate",
+        "totalAmount",
+        "status",
+        "paymentMethod",
+        "shippingStreet",
+        "shippingCity",
+        "shippingState",
+        "shippingPostalCode",
+        "shippingCountry",
+        "billingStreet",
+        "billingCity",
+        "billingState",
+        "billingPostalCode",
+        "billingCountry",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "OrderItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OrderItem",
+      "type": "object",
+      "description": "Represents a specific item included in a placed order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the OrderItem entity."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to the parent Order. (Relationship: Order 1:N OrderItem)"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product purchased in this order item."
+        },
+        "productVariantId": {
+          "type": "string",
+          "description": "Reference to the specific ProductVariant (color) purchased."
+        },
+        "sizeVariantId": {
+          "type": "string",
+          "description": "Reference to the specific SizeVariant (size) purchased."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of this specific item purchased in the order."
+        },
+        "priceAtPurchase": {
+          "type": "number",
+          "description": "The price at which this item was purchased (includes any discounts applied at the time)."
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "productId",
+        "productVariantId",
+        "sizeVariantId",
+        "quantity",
+        "priceAtPurchase"
+      ]
+    },
+    "Banner": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Banner",
+      "type": "object",
+      "description": "Represents a promotional banner displayed on the homepage, which can be interactive or static.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Banner entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The main title text for the banner."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description or subtitle for the banner."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the image to display in the banner.",
+          "format": "uri"
+        },
+        "videoUrl": {
+          "type": "string",
+          "description": "Optional URL of a video to display in the banner instead of an image.",
+          "format": "uri"
+        },
+        "linkUrl": {
+          "type": "string",
+          "description": "The URL to navigate to when the banner's call-to-action is clicked.",
+          "format": "uri"
+        },
+        "callToActionText": {
+          "type": "string",
+          "description": "Text for the call-to-action button displayed on the banner."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of banner, either 'Navigational' (clickable) or 'Static' (informational)."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Indicates if the banner is currently active and should be displayed."
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "An integer defining the display order of banners on the homepage."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the banner was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the banner information was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "imageUrl",
+        "linkUrl",
+        "callToActionText",
+        "type",
+        "isActive",
+        "sortOrder",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous",
+      "google.com",
+      "twitter.com"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores individual user profiles. Each user's document ID matches their Firebase Authentication UID.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique Firebase Authentication User ID (UID) of the user."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
