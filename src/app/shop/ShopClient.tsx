@@ -3,8 +3,9 @@
 import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import AuthModal from "@/components/auth/AuthModal";
-import { PRODUCTS } from "@/lib/data";
 import ProductCard from "@/components/product/ProductCard";
+import { mapDesignToProduct } from "@/lib/productMapper";
+import { Product } from "@/lib/types";
 import {
   Select,
   SelectContent,
@@ -22,14 +23,9 @@ export default function ShopClient() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
 
-  const categories = [
-    "All",
-    "Outerwear",
-    "Dresses",
-    "Knitwear",
-    "Accessories",
-    "Footwear",
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>(["All"]);
+  const [loading, setLoading] = useState(true);
 
   // ✅ FIX: sync query param safely (no hydration issue)
   useEffect(() => {
@@ -39,8 +35,39 @@ export default function ShopClient() {
     }
   }, [searchParams]);
 
+  // Fetch categories and designs from backend
+  useEffect(() => {
+    const fetchCollection = async () => {
+      try {
+        setLoading(true);
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const [catsRes, designsRes] = await Promise.all([
+          fetch(`${API_URL}/api/admin/dress-categories`),
+          fetch(`${API_URL}/api/admin/designs`)
+        ]);
+
+        const catsData = await catsRes.json();
+        const designsData = await designsRes.json();
+
+        setCategories(["All", ...catsData.map((c: any) => c.name)]);
+
+        const mapped = (designsData || []).map((design: any) => 
+          mapDesignToProduct(design, catsData)
+        );
+
+        setProducts(mapped);
+      } catch (err) {
+        console.error("Failed to load shop collection from backend:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCollection();
+  }, []);
+
   const filteredProducts = useMemo(() => {
-    let result = [...PRODUCTS];
+    let result = [...products];
 
     if (selectedCategory !== "All") {
       if (selectedCategory === "New Arrivals") {
@@ -71,7 +98,18 @@ export default function ShopClient() {
     }
 
     return result;
-  }, [selectedCategory, priceRange, sortBy]);
+  }, [selectedCategory, priceRange, sortBy, products]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-mesh flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Loading Collection...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-mesh">

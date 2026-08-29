@@ -4,27 +4,27 @@
 
 @layer base {
   :root {
-    /* "Champagne & Gold" Luxury Palette */
-    --background: 40 40% 99%; /* Almost white cream */
-    --foreground: 0 0% 12%;
+    /* "Indigo & Burnished Gold" Modern Luxury Palette */
+    --background: 260 30% 99%; /* Extremely clean off-white with cool indigo hint */
+    --foreground: 260 40% 12%; /* Rich indigo-black */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 12%;
+    --card-foreground: 260 40% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 12%;
-    --primary: 0 0% 15%;
+    --popover-foreground: 260 40% 12%;
+    --primary: 263 45% 15%; /* Deep luxury indigo purple */
     --primary-foreground: 0 0% 100%;
-    --secondary: 40 20% 97%;
-    --secondary-foreground: 0 0% 15%;
-    --muted: 40 20% 97%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 43 50% 90%; /* Soft light gold */
-    --accent-foreground: 0 0% 20%;
+    --secondary: 260 15% 97%; /* Soft muted indigo-grey tint */
+    --secondary-foreground: 263 45% 15%;
+    --muted: 260 15% 97%;
+    --muted-foreground: 260 15% 45%;
+    --accent: 38 48% 46%; /* Burnished gold - high contrast and visible on white */
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 40 10% 92%;
-    --input: 40 10% 92%;
-    --ring: 43 50% 70%;
-    --radius: 4rem; /* Organic curves */
+    --border: 260 15% 92%;
+    --input: 260 15% 92%;
+    --ring: 38 48% 60%;
+    --radius: 2rem; /* Clean modern soft curves */
   }
 }
 
@@ -62,14 +62,14 @@
 }
 
 .bg-blob-1 {
-  background: radial-gradient(circle, hsl(43 60% 92%) 0%, transparent 70%);
+  background: radial-gradient(circle, hsl(263 45% 94%) 0%, transparent 70%);
   top: -30%;
   left: -20%;
   animation-duration: 50s;
 }
 
 .bg-blob-2 {
-  background: radial-gradient(circle, #ffffff 0%, transparent 70%);
+  background: radial-gradient(circle, hsl(38 45% 94%) 0%, transparent 70%);
   bottom: -30%;
   right: -20%;
   animation-delay: -25s;
@@ -78,7 +78,7 @@
 }
 
 .bg-blob-3 {
-  background: radial-gradient(circle, hsl(35 40% 94%) 0%, transparent 70%);
+  background: radial-gradient(circle, hsl(260 30% 95%) 0%, transparent 70%);
   top: 40%;
   left: 30%;
   width: 60vmax;
@@ -88,10 +88,18 @@
 }
 
 @keyframes blob-float {
-  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-  33% { transform: translate(10%, 15%) scale(1.1) rotate(120deg); }
-  66% { transform: translate(-15%, 5%) scale(0.9) rotate(240deg); }
-  100% { transform: translate(0, 0) scale(1) rotate(360deg); }
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(10%, 15%) scale(1.1) rotate(120deg);
+  }
+  66% {
+    transform: translate(-15%, 5%) scale(0.9) rotate(240deg);
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+  }
 }
 
 .bg-grain {
@@ -120,7 +128,7 @@
 }
 
 .hover-underline-luxury::after {
-  content: '';
+  content: "";
   @apply absolute bottom-[-4px] left-0 w-full h-[1px] bg-accent scale-x-0 origin-right;
   transition: transform 700ms cubic-bezier(0.19, 1, 0.22, 1);
 }
@@ -141,9 +149,15 @@
 }
 
 @keyframes slow-float {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-30px) rotate(1deg); }
-  100% { transform: translateY(0px) rotate(0deg); }
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-30px) rotate(1deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
 }
 
 .animate-float-slow {

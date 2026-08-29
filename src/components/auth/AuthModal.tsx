@@ -93,7 +93,7 @@ export default function AuthModal() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full rounded-full bg-primary py-8 text-[10px] tracking-[0.6em] font-bold hover:bg-accent transition-all shadow-xl hover:shadow-accent/20">
+            <Button type="submit" className="w-full rounded-full bg-primary py-8 text-[10px] tracking-[0.6em] font-bold hover:bg-primary/90 transition-all shadow-xl hover:shadow-primary/20">
               {isLogin ? 'ENTER CABINET' : 'REGISTER PROFILE'}
             </Button>
             <div className="text-center pt-4">

@@ -2,7 +2,6 @@
 
 import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
-import { PRODUCTS } from '@/lib/data';
 import Navbar from '@/components/layout/Navbar';
 import AuthModal from '@/components/auth/AuthModal';
 import { useAuthStore, useCartStore, useUIStore } from '@/store/useStore';
@@ -10,21 +9,75 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import OutfitSuggestions from '@/components/ai/OutfitSuggestions';
-import { ShoppingBag, ChevronRight, Heart } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Heart, Shirt } from 'lucide-react';
+import { Product } from '@/lib/types';
+import { mapDesignToProduct } from '@/lib/productMapper';
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const product = PRODUCTS.find(p => p.id === id);
   const { user } = useAuthStore();
   const { setAuthModal } = useUIStore();
   const { addItem } = useCartStore();
 
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  if (!product) return <div>Product not found.</div>;
+  useEffect(() => {
+    const loadProductData = async () => {
+      try {
+        setLoading(true);
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        
+        // Fetch categories and the specific design
+        const [catsRes, designRes] = await Promise.all([
+          fetch(`${API_URL}/api/admin/dress-categories`),
+          fetch(`${API_URL}/api/admin/designs/${id}`)
+        ]);
+        
+        const catsData = await catsRes.json();
+        const design = await designRes.json();
+        
+        if (!design || design.error) {
+          setProduct(null);
+          return;
+        }
 
-  const currentVariant = product.variants[selectedColorIdx];
+        const mappedProduct = mapDesignToProduct(design, catsData);
+        setProduct(mappedProduct);
+      } catch (err) {
+        console.error("Failed to load product data:", err);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadProductData();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-mesh flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Loading Piece...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) return <div className="p-20 text-center font-mono">Product not found.</div>;
+
+  const currentVariant = product.variants[selectedColorIdx] || {
+    color: "#708090",
+    colorName: "Default",
+    images: ["https://placehold.co/800x1200?text=No+Image"],
+    sizes: []
+  };
+
+  const hasRealImage = currentVariant.images && currentVariant.images.length > 0 && !currentVariant.images[0].includes("placehold.co");
 
   const handleAddToCart = () => {
     if (!user) {
@@ -67,20 +120,27 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           {/* Gallery - Organic layout */}
           <div className="lg:col-span-7 space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {currentVariant.images.map((img, i) => (
-                <div key={i} className={cn(
-                  "relative aspect-[3/4] bg-secondary/30 overflow-hidden shadow-2xl",
-                  i % 3 === 0 ? "rounded-[3rem] md:rounded-[5rem]" : "rounded-[2rem] md:rounded-[3rem]"
-                )}>
-                  <Image
-                    src={img}
-                    alt={`${product.name} - ${i}`}
-                    fill
-                    className="object-cover transition-transform duration-[2s] hover:scale-110"
-                    priority={i === 0}
-                  />
+              {hasRealImage ? (
+                currentVariant.images.map((img, i) => (
+                  <div key={i} className={cn(
+                    "relative aspect-[3/4] bg-secondary/30 overflow-hidden shadow-2xl",
+                    i % 3 === 0 ? "rounded-[3rem] md:rounded-[5rem]" : "rounded-[2rem] md:rounded-[3rem]"
+                  )}>
+                    <Image
+                      src={img}
+                      alt={`${product.name} - ${i}`}
+                      fill
+                      className="object-cover transition-transform duration-[2s] hover:scale-110"
+                      priority={i === 0}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 relative aspect-[4/3] bg-secondary/10 border border-dashed border-primary/20 rounded-[3rem] flex flex-col items-center justify-center text-muted-foreground/35 space-y-3">
+                  <Shirt className="h-16 w-16 stroke-[1.2]" />
+                  <span className="text-[9px] font-bold tracking-[0.3em] uppercase">No Image Available</span>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -158,7 +218,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
             <Button
               onClick={handleAddToCart}
-              className="w-full rounded-full py-10 text-[10px] tracking-[0.5em] font-bold transition-all group shadow-2xl hover:shadow-accent/30 bg-primary hover:bg-accent"
+              className="w-full rounded-full py-10 text-[10px] tracking-[0.5em] font-bold transition-all group shadow-2xl hover:shadow-primary/30 bg-primary hover:bg-primary/90"
             >
               <ShoppingBag className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform" />
               ADD TO BAG
