@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import AuthModal from "@/components/auth/AuthModal";
 import ProductCard from "@/components/product/ProductCard";
 import { mapDesignToProduct } from "@/lib/productMapper";
+import { PRODUCTS } from "@/lib/data";
 import { Product } from "@/lib/types";
 import {
   Select,
@@ -15,19 +16,26 @@ import {
 } from "@/components/ui/select";
 import { SlidersHorizontal } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 export default function ShopClient() {
   const searchParams = useSearchParams();
 
   const [sortBy, setBy] = useState("latest");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [priceRange] = useState<[number, number]>([0, 500000]);
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>(["All"]);
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [categories, setCategories] = useState<string[]>([
+    "All",
+    "Queen's Wardrobe",
+    "King's Wardrobe",
+    "Outerwear",
+    "New Arrivals"
+  ]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ FIX: sync query param safely (no hydration issue)
+  // Sync query parameter safely
   useEffect(() => {
     const category = searchParams.get("category");
     if (category) {
@@ -35,7 +43,7 @@ export default function ShopClient() {
     }
   }, [searchParams]);
 
-  // Fetch categories and designs from backend
+  // Fetch categories and designs from backend with fallback
   useEffect(() => {
     const fetchCollection = async () => {
       try {
@@ -46,18 +54,27 @@ export default function ShopClient() {
           fetch(`${API_URL}/api/admin/designs`)
         ]);
 
-        const catsData = await catsRes.json();
-        const designsData = await designsRes.json();
+        if (catsRes.ok && designsRes.ok) {
+          const catsData = await catsRes.json();
+          const designsData = await designsRes.json();
 
-        setCategories(["All", ...catsData.map((c: any) => c.name)]);
+          if (Array.isArray(catsData) && catsData.length > 0) {
+            setCategories(["All", ...catsData.map((c: any) => c.name)]);
+          }
 
-        const mapped = (designsData || []).map((design: any) => 
-          mapDesignToProduct(design, catsData)
-        );
-
-        setProducts(mapped);
+          if (Array.isArray(designsData) && designsData.length > 0) {
+            const mapped = designsData.map((design: any) => 
+              mapDesignToProduct(design, catsData)
+            );
+            setProducts(mapped);
+          } else {
+            setProducts(PRODUCTS);
+          }
+        } else {
+          setProducts(PRODUCTS);
+        }
       } catch (err) {
-        console.error("Failed to load shop collection from backend:", err);
+        setProducts(PRODUCTS);
       } finally {
         setLoading(false);
       }
@@ -73,27 +90,28 @@ export default function ShopClient() {
       if (selectedCategory === "New Arrivals") {
         result = result.filter((p) => p.isNew);
       } else {
-        result = result.filter((p) => p.category === selectedCategory);
+        result = result.filter((p) => 
+          p.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+          selectedCategory.toLowerCase().includes(p.category.toLowerCase())
+        );
       }
     }
 
     result = result.filter(
       (p) =>
         (p.discountPrice || p.basePrice) >= priceRange[0] &&
-        (p.discountPrice || p.basePrice) <= priceRange[1],
+        (p.discountPrice || p.basePrice) <= priceRange[1]
     );
 
     if (sortBy === "price-low") {
       result.sort(
-        (a, b) =>
-          (a.discountPrice || a.basePrice) - (b.discountPrice || b.basePrice),
+        (a, b) => (a.discountPrice || a.basePrice) - (b.discountPrice || b.basePrice)
       );
     }
 
     if (sortBy === "price-high") {
       result.sort(
-        (a, b) =>
-          (b.discountPrice || b.basePrice) - (a.discountPrice || a.basePrice),
+        (a, b) => (b.discountPrice || b.basePrice) - (a.discountPrice || a.basePrice)
       );
     }
 
@@ -102,102 +120,110 @@ export default function ShopClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-mesh flex items-center justify-center">
+      <div className="min-h-screen bg-[#0A0612] flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Loading Collection...</p>
+          <div className="relative h-8 w-28 mx-auto animate-pulse">
+            <Image
+              src="/assets/1.1.png"
+              alt="CEYRAA"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <p className="text-xs uppercase tracking-[0.25em] text-zinc-400 font-light">
+            Loading Collection...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-mesh">
+    <div className="min-h-screen text-[#F7F5FA]">
       <Navbar />
       <AuthModal />
 
-      <main className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 py-20">
-        {/* HEADER */}
-        <div className="flex flex-col space-y-12 mb-20">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-8">
-            <div className="space-y-4">
-              <span className="text-[10px] tracking-[0.5em] font-bold text-accent uppercase">
-                Explore
+      <main className="max-w-[1700px] mx-auto px-6 sm:px-10 lg:px-12 pt-32 pb-24">
+        {/* Header Section */}
+        <div className="flex flex-col space-y-8 mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/10 pb-6">
+            <div className="space-y-2">
+              <span className="text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase font-medium">
+                The Wardrobe
               </span>
 
-              <h1 className="font-headline text-5xl md:text-7xl tracking-tighter uppercase leading-none">
-                {selectedCategory === "All"
-                  ? "The Collection"
-                  : selectedCategory}
+              <h1 className="font-headline text-3xl sm:text-5xl font-normal text-white uppercase">
+                {selectedCategory === "All" ? "Full Collection" : selectedCategory}
               </h1>
+              <p className="text-xs tracking-wider text-zinc-400 font-light">
+                Tailored dresses, shirts, and everyday refined attire
+              </p>
             </div>
 
-            <div className="flex flex-col md:items-end gap-4">
-              <span className="text-[10px] tracking-widest text-muted-foreground uppercase font-bold">
+            {/* Total Count & Sorting */}
+            <div className="flex items-center gap-4">
+              <span className="text-xs tracking-wider text-zinc-400 font-light">
                 {filteredProducts.length} Pieces
               </span>
 
-              <div className="flex items-center gap-4 bg-white/50 backdrop-blur-md px-6 py-3 rounded-full border border-white/40 shadow-sm">
-                <span className="text-[10px] tracking-widest text-muted-foreground uppercase font-black">
-                  Sort By
+              <div className="flex items-center gap-2 calm-glass px-4 py-2 rounded-full border border-white/10">
+                <span className="text-[11px] text-zinc-400 font-light">
+                  Sort:
                 </span>
 
                 <Select value={sortBy} onValueChange={setBy}>
-                  <SelectTrigger className="w-[180px] border-none bg-transparent rounded-none text-[10px] uppercase tracking-[0.2em] focus:ring-0 h-auto p-0 font-bold">
+                  <SelectTrigger className="w-[130px] border-none bg-transparent rounded-none text-xs tracking-wider focus:ring-0 h-auto p-0 font-medium text-white">
                     <SelectValue placeholder="Latest" />
                   </SelectTrigger>
 
-                  <SelectContent className="rounded-2xl border-none shadow-2xl">
+                  <SelectContent className="rounded-xl border border-white/15 bg-[#140C24] text-white shadow-xl">
                     <SelectItem value="latest">Latest</SelectItem>
-                    <SelectItem value="price-low">Price Low</SelectItem>
-                    <SelectItem value="price-high">Price High</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </div>
 
-          {/* CATEGORY FILTER */}
-          <div className="flex flex-wrap items-center gap-4 py-6 border-y border-primary/5">
-            <div className="flex gap-4 overflow-x-auto no-scrollbar py-2">
-              {categories.map((cat) => (
+          {/* Category Filter Pills */}
+          <div className="flex gap-2.5 overflow-x-auto pb-2 no-scrollbar">
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat;
+              return (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`text-[10px] tracking-[0.3em] uppercase whitespace-nowrap px-8 py-3 rounded-full border transition-all duration-500 font-bold ${
-                    selectedCategory === cat
-                      ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
-                      : "bg-white/40 text-primary border-transparent hover:border-accent hover:text-accent"
+                  className={`text-[11px] tracking-wider uppercase whitespace-nowrap px-5 py-2 rounded-full border transition-all duration-300 font-medium ${
+                    isSelected
+                      ? "calm-primary-btn border-white"
+                      : "calm-glass text-zinc-300 border-white/10 hover:border-white/30 hover:text-white"
                   }`}
                 >
                   {cat}
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* PRODUCTS GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-24">
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
 
-        {/* EMPTY STATE */}
+        {/* Empty State */}
         {filteredProducts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-60 space-y-8">
-            <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center">
-              <SlidersHorizontal className="h-6 w-6 text-muted-foreground/30" />
-            </div>
-
-            <p className="text-xs font-medium uppercase tracking-[0.4em] text-muted-foreground/60">
-              No pieces match your selection
+          <div className="flex flex-col items-center justify-center py-32 space-y-4 text-center calm-card rounded-2xl p-10 my-8">
+            <SlidersHorizontal className="h-6 w-6 text-zinc-500" />
+            <p className="text-xs uppercase tracking-widest text-zinc-400 font-light">
+              No garments found matching this selection
             </p>
-
             <button
               onClick={() => setSelectedCategory("All")}
-              className="text-[10px] tracking-[0.4em] uppercase font-bold text-accent hover:underline underline-offset-8"
+              className="calm-secondary-btn px-6 py-2 rounded-full text-xs uppercase tracking-wider font-medium"
             >
               Reset Filters
             </button>

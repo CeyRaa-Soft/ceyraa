@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CeyRaa Luxury Fashion",
-  description: "Premium Luxury Fashion Platform",
+  title: "CEYRAA | Fashion & Wardrobe",
+  description: "Elevated everyday fashion and timeless wardrobe pieces by CEYRAA.",
 };
 
 export default function RootLayout({
@@ -21,20 +21,18 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased selection:bg-accent/40 selection:text-foreground">
-        {/* Global Liquid Archive Layers */}
-        <div className="global-dynamic-bg">
-          <div className="bg-blob bg-blob-1" />
-          <div className="bg-blob bg-blob-2" />
-          <div className="bg-blob bg-blob-3" />
+      <body className="font-body antialiased selection:bg-accent/20 selection:text-white bg-[#0A0612] text-[#F7F5FA]">
+        {/* Calm Atmospheric Lighting */}
+        <div className="calm-ambient-bg">
+          <div className="calm-glow-orb calm-glow-1" />
+          <div className="calm-glow-orb calm-glow-2" />
         </div>
-        <div className="bg-grain" />
 
-        <div className="relative z-0">{children}</div>
+        <div className="relative z-0 min-h-screen">{children}</div>
       </body>
     </html>
   );
