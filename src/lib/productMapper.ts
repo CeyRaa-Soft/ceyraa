@@ -42,7 +42,7 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
     let colorImages = (design.images || [])
       .filter(
         (img: any) =>
-          img.color.trim().toLowerCase() === v.color.trim().toLowerCase(),
+          (img?.color || "").trim().toLowerCase() === (v?.color || "").trim().toLowerCase(),
       )
       .map((img: any) => img.url);
 
