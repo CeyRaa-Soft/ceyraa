@@ -31,7 +31,7 @@ export default function ShopClient() {
     "Queen's Wardrobe",
     "King's Wardrobe",
     "Outerwear",
-    "New Arrivals"
+    "New Arrivals",
   ]);
   const [loading, setLoading] = useState(true);
 
@@ -48,10 +48,11 @@ export default function ShopClient() {
     const fetchCollection = async () => {
       try {
         setLoading(true);
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
         const [catsRes, designsRes] = await Promise.all([
           fetch(`${API_URL}/api/admin/dress-categories`),
-          fetch(`${API_URL}/api/admin/designs`)
+          fetch(`${API_URL}/api/admin/designs`),
         ]);
 
         if (catsRes.ok && designsRes.ok) {
@@ -63,8 +64,8 @@ export default function ShopClient() {
           }
 
           if (Array.isArray(designsData) && designsData.length > 0) {
-            const mapped = designsData.map((design: any) => 
-              mapDesignToProduct(design, catsData)
+            const mapped = designsData.map((design: any) =>
+              mapDesignToProduct(design, catsData),
             );
             setProducts(mapped);
           } else {
@@ -90,28 +91,39 @@ export default function ShopClient() {
       if (selectedCategory === "New Arrivals") {
         result = result.filter((p) => p.isNew);
       } else {
-        result = result.filter((p) => 
-          p.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-          selectedCategory.toLowerCase().includes(p.category.toLowerCase())
-        );
+        const catLower = selectedCategory.toLowerCase();
+        result = result.filter((p) => {
+          const matchCategory =
+            p.category?.toLowerCase().includes(catLower) ||
+            catLower.includes(p.category?.toLowerCase() || "");
+          const matchDefault =
+            p.defaultCollection?.toLowerCase().includes(catLower) ||
+            catLower.includes(p.defaultCollection?.toLowerCase() || "");
+          const matchCustom =
+            p.customCollection?.toLowerCase().includes(catLower) ||
+            catLower.includes(p.customCollection?.toLowerCase() || "");
+          return matchCategory || matchDefault || matchCustom;
+        });
       }
     }
 
     result = result.filter(
       (p) =>
         (p.discountPrice || p.basePrice) >= priceRange[0] &&
-        (p.discountPrice || p.basePrice) <= priceRange[1]
+        (p.discountPrice || p.basePrice) <= priceRange[1],
     );
 
     if (sortBy === "price-low") {
       result.sort(
-        (a, b) => (a.discountPrice || a.basePrice) - (b.discountPrice || b.basePrice)
+        (a, b) =>
+          (a.discountPrice || a.basePrice) - (b.discountPrice || b.basePrice),
       );
     }
 
     if (sortBy === "price-high") {
       result.sort(
-        (a, b) => (b.discountPrice || b.basePrice) - (a.discountPrice || a.basePrice)
+        (a, b) =>
+          (b.discountPrice || b.basePrice) - (a.discountPrice || a.basePrice),
       );
     }
 
@@ -153,7 +165,9 @@ export default function ShopClient() {
               </span>
 
               <h1 className="font-headline text-3xl sm:text-5xl font-normal text-white uppercase">
-                {selectedCategory === "All" ? "Full Collection" : selectedCategory}
+                {selectedCategory === "All"
+                  ? "Full Collection"
+                  : selectedCategory}
               </h1>
               <p className="text-xs tracking-wider text-zinc-400 font-light">
                 Tailored dresses, shirts, and everyday refined attire
@@ -178,8 +192,12 @@ export default function ShopClient() {
 
                   <SelectContent className="rounded-xl border border-white/15 bg-[#140C24] text-white shadow-xl">
                     <SelectItem value="latest">Latest</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="price-low">
+                      Price: Low to High
+                    </SelectItem>
+                    <SelectItem value="price-high">
+                      Price: High to Low
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -18,6 +18,14 @@ export interface Product {
   discountPrice?: number;
   variants: ColorVariant[];
   mediaVideoUrl?: string;
+  defaultCollection?: string;
+  customCollection?: string;
+  offer?: {
+    active: boolean;
+    discountPercentage: number;
+    originalPrice: number;
+    offerPrice: number;
+  };
   createdAt: string;
   isNew?: boolean;
   isTrending?: boolean;
