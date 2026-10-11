@@ -89,6 +89,50 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     loadProductData();
   }, [id]);
 
+  const currentVariant = product?.variants[selectedColorIdx] || {
+    color: "#1E1236",
+    colorName: "Classic",
+    images: ["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80"],
+    sizes: []
+  };
+
+  const imagesList = currentVariant.images || [];
+  const hasRealImage = imagesList.length > 0 && !imagesList[0].includes("placehold.co");
+
+  const handlePrevImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setIsVideoActive(false);
+    setActiveImageIdx((prev) => (prev === 0 ? imagesList.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setIsVideoActive(false);
+    setActiveImageIdx((prev) => (prev === imagesList.length - 1 ? 0 : prev + 1));
+  };
+
+  // Keyboard navigation for Lightbox (called unconditionally)
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsLightboxOpen(false);
+      if (e.key === 'ArrowLeft') handlePrevImage();
+      if (e.key === 'ArrowRight') handleNextImage();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLightboxOpen, imagesList.length]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({
+      x: Math.max(0, Math.min(100, x)),
+      y: Math.max(0, Math.min(100, y)),
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0A0612] flex items-center justify-center">
@@ -121,49 +165,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       </div>
     );
   }
-
-  const currentVariant = product.variants[selectedColorIdx] || {
-    color: "#1E1236",
-    colorName: "Classic",
-    images: ["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80"],
-    sizes: []
-  };
-
-  const imagesList = currentVariant.images || [];
-  const hasRealImage = imagesList.length > 0 && !imagesList[0].includes("placehold.co");
-
-  const handlePrevImage = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setIsVideoActive(false);
-    setActiveImageIdx((prev) => (prev === 0 ? imagesList.length - 1 : prev - 1));
-  };
-
-  const handleNextImage = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setIsVideoActive(false);
-    setActiveImageIdx((prev) => (prev === imagesList.length - 1 ? 0 : prev + 1));
-  };
-
-  useEffect(() => {
-    if (!isLightboxOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsLightboxOpen(false);
-      if (e.key === 'ArrowLeft') handlePrevImage();
-      if (e.key === 'ArrowRight') handleNextImage();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isLightboxOpen, imagesList.length]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setZoomPos({
-      x: Math.max(0, Math.min(100, x)),
-      y: Math.max(0, Math.min(100, y)),
-    });
-  };
 
   const handleAddToCart = () => {
     if (!user) {

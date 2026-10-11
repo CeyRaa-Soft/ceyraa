@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { suggestOutfit, OutfitSuggestionOutput } from '@/ai/flows/ai-powered-outfit-suggestions';
 import { Product } from '@/lib/types';
 import Image from 'next/image';
@@ -9,10 +9,24 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function OutfitSuggestions({ currentItems }: { currentItems: Product[] }) {
   const [suggestions, setSuggestions] = useState<OutfitSuggestionOutput | null>(null);
   const [loading, setLoading] = useState(true);
+  const fetchedKeyRef = useRef<string>("");
+
+  const itemIds = currentItems
+    .map(item => item?.id)
+    .filter(Boolean)
+    .join(",");
 
   useEffect(() => {
+    if (!itemIds || fetchedKeyRef.current === itemIds) {
+      return;
+    }
+
+    fetchedKeyRef.current = itemIds;
+    let isCancelled = false;
+
     async function fetchSuggestions() {
       try {
+        setLoading(true);
         const input = {
           currentItems: currentItems.map(item => ({
             productId: item.id,
@@ -25,15 +39,26 @@ export default function OutfitSuggestions({ currentItems }: { currentItems: Prod
           }))
         };
         const result = await suggestOutfit(input);
-        setSuggestions(result);
+        if (!isCancelled) {
+          setSuggestions(result);
+        }
       } catch (error) {
-        setSuggestions(null);
+        if (!isCancelled) {
+          setSuggestions(null);
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     }
+
     fetchSuggestions();
-  }, [currentItems]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [itemIds]);
 
   if (!loading && (!suggestions || !suggestions.suggestions || suggestions.suggestions.length === 0)) return null;
 
