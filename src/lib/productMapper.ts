@@ -53,6 +53,7 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
     return {
       color: colorToHex(v.color),
       colorName: v.color,
+      swatchUrl: v.swatchUrl || undefined,
       images: colorImages,
       sizes: (v.sizes || []).map((s: any) => ({
         size: s.size,
@@ -68,6 +69,7 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
     category: categoryName,
     basePrice: basePrice,
     variants: mappedVariants,
+    mediaVideoUrl: design.mediaVideoUrl || undefined,
     createdAt: design.createdAt || new Date().toISOString(),
     isNew: true
   };

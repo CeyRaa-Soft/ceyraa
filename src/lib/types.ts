@@ -1,6 +1,7 @@
 export interface ColorVariant {
   color: string;
   colorName: string;
+  swatchUrl?: string;
   images: string[];
   sizes: {
     size: string;
@@ -16,6 +17,7 @@ export interface Product {
   basePrice: number;
   discountPrice?: number;
   variants: ColorVariant[];
+  mediaVideoUrl?: string;
   createdAt: string;
   isNew?: boolean;
   isTrending?: boolean;
