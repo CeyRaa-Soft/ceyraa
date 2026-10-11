@@ -241,14 +241,22 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                     key={`${v.color}-${i}`}
                     onClick={() => setSelectedColorIdx(i)}
                     className={cn(
-                      "w-8 h-8 rounded-full border transition-all duration-200",
+                      "w-8 h-8 rounded-full border transition-all duration-200 overflow-hidden relative shadow-sm",
                       selectedColorIdx === i 
-                        ? "border-[#D4AF37] ring-1 ring-[#D4AF37] scale-110" 
+                        ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/50 scale-110" 
                         : "border-white/20 opacity-70 hover:opacity-100"
                     )}
-                    style={{ backgroundColor: v.color }}
+                    style={!v.swatchUrl ? { backgroundColor: v.color } : undefined}
                     title={v.colorName}
-                  />
+                  >
+                    {v.swatchUrl && (
+                      <img
+                        src={v.swatchUrl}
+                        alt={v.colorName}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </button>
                 ))}
               </div>
             </div>

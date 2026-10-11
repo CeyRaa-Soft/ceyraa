@@ -1,18 +1,57 @@
 "use client";
 
-import Navbar from '@/components/layout/Navbar';
-import AuthModal from '@/components/auth/AuthModal';
-import { PRODUCTS } from '@/lib/data';
-import ProductCard from '@/components/product/ProductCard';
+import { useState, useEffect } from "react";
+import Navbar from "@/components/layout/Navbar";
+import AuthModal from "@/components/auth/AuthModal";
+import { PRODUCTS } from "@/lib/data";
+import { Product } from "@/lib/types";
+import { mapDesignToProduct } from "@/lib/productMapper";
+import ProductCard from "@/components/product/ProductCard";
 
 export default function OffersPage() {
-  const offerProducts = PRODUCTS.filter(p => p.discountPrice && p.discountPrice < p.basePrice);
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const [catsRes, designsRes] = await Promise.all([
+          fetch(`${API_URL}/api/admin/dress-categories`),
+          fetch(`${API_URL}/api/admin/designs`),
+        ]);
+
+        if (catsRes.ok && designsRes.ok) {
+          const catsData = await catsRes.json();
+          const designsData = await designsRes.json();
+          if (Array.isArray(designsData) && designsData.length > 0) {
+            const mapped = designsData.map((d: any) =>
+              mapDesignToProduct(d, catsData),
+            );
+            setProducts(mapped);
+          }
+        }
+      } catch (err) {
+        setProducts(PRODUCTS);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOffers();
+  }, []);
+
+  const offerProducts = products.filter(
+    (p) =>
+      p.offer?.active || (p.discountPrice && p.discountPrice < p.basePrice),
+  );
 
   return (
     <div className="min-h-screen text-[#F7F5FA]">
       <Navbar />
       <AuthModal />
-      
+
       <main className="max-w-[1700px] mx-auto px-6 sm:px-8 lg:px-12 pt-32 pb-24">
         {/* Banner */}
         <div className="relative rounded-2xl calm-card border border-white/10 p-8 md:p-14 mb-16 text-center">
@@ -20,13 +59,14 @@ export default function OffersPage() {
             <span className="text-[10px] tracking-widest uppercase text-[#D4AF37] font-medium">
               Private Edit
             </span>
-            
+
             <h1 className="font-headline text-3xl sm:text-5xl font-normal text-white uppercase">
               Exclusive Offers
             </h1>
-            
+
             <p className="text-xs sm:text-sm font-light text-zinc-300 leading-relaxed">
-              Selected seasonal garments available at preferred pricing for our customers.
+              Selected seasonal garments available at preferred pricing for our
+              customers.
             </p>
           </div>
         </div>
