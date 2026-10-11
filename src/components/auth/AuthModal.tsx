@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useUIStore, useAuthStore } from '@/store/useStore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -18,91 +19,99 @@ export default function AuthModal() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password) {
-      // Simulate login with local store
       login(email);
       setAuthModal(false);
     }
   };
 
   const handleSocialSignIn = (provider: string) => {
-    // Simulate social sign in
     login(`${provider.toLowerCase()}@example.com`);
     setAuthModal(false);
   };
 
   return (
     <Dialog open={isAuthModalOpen} onOpenChange={setAuthModal}>
-      <DialogContent className="sm:max-w-[450px] border-none rounded-[3rem] p-10 bg-white/90 backdrop-blur-2xl shadow-2xl overflow-hidden">
-        <DialogHeader className="mb-8">
-          <DialogTitle className="font-headline text-4xl text-center tracking-tighter uppercase">
-            {isLogin ? 'Welcome Back' : 'Create Profile'}
+      <DialogContent className="sm:max-w-[420px] border border-white/10 rounded-3xl p-8 bg-[#120B20]/95 backdrop-blur-2xl shadow-2xl text-[#F7F5FA]">
+        <DialogHeader className="mb-4 text-center flex flex-col items-center">
+          <div className="relative h-7 w-28 mb-3">
+            <Image
+              src="/assets/1.1.png"
+              alt="CEYRAA"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <DialogTitle className="font-headline text-2xl font-normal text-white uppercase">
+            {isLogin ? 'Sign In' : 'Create Account'}
           </DialogTitle>
-          <p className="text-[9px] text-center tracking-[0.5em] font-bold text-muted-foreground uppercase mt-4">CeyRaa Membership Access</p>
+          <p className="text-[10px] text-center tracking-widest text-zinc-400 uppercase mt-1">
+            Access your wardrobe and saved pieces
+          </p>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Social Logins */}
-          <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 gap-2.5">
             <Button 
               onClick={() => handleSocialSignIn('Google')}
               variant="outline" 
-              className="rounded-full py-7 text-[10px] tracking-[0.4em] font-bold border-primary/10 hover:bg-primary/5 transition-all"
+              className="rounded-full py-5 text-xs tracking-wider border-white/15 hover:border-white/30 hover:bg-white/5 text-zinc-200 transition-all font-normal"
             >
-              CONTINUE WITH GOOGLE
-            </Button>
-            <Button 
-              onClick={() => handleSocialSignIn('Twitter')}
-              variant="outline" 
-              className="rounded-full py-7 text-[10px] tracking-[0.4em] font-bold border-primary/10 hover:bg-primary/5 transition-all"
-            >
-              CONTINUE WITH X
+              Continue with Google
             </Button>
           </div>
 
-          <div className="relative">
+          <div className="relative my-1">
             <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full opacity-10" />
+              <Separator className="w-full bg-white/10" />
             </div>
-            <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em] font-bold">
-              <span className="bg-transparent px-2 text-muted-foreground/60">or identifier access</span>
+            <div className="relative flex justify-center text-[9px] uppercase tracking-widest text-zinc-500 font-light">
+              <span className="bg-[#120B20] px-3">or email</span>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-3">
-              <Label htmlFor="email" className="text-[9px] uppercase tracking-[0.5em] font-black text-muted-foreground/60 ml-4">Identifier</Label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-[10px] uppercase tracking-wider text-zinc-400 font-light ml-2">
+                Email Address
+              </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Email Address"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-full bg-secondary/30 border-none px-8 py-7 text-[11px] tracking-widest focus-visible:ring-1 focus-visible:ring-accent"
+                className="rounded-full bg-[#1A102A] border border-white/15 text-white placeholder-zinc-500 px-5 py-5 text-xs tracking-wider focus-visible:ring-1 focus-visible:ring-white/30"
                 required
               />
             </div>
-            <div className="space-y-3">
-              <Label htmlFor="password" className="text-[9px] uppercase tracking-[0.5em] font-black text-muted-foreground/60 ml-4">Credential</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-[10px] uppercase tracking-wider text-zinc-400 font-light ml-2">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="rounded-full bg-secondary/30 border-none px-8 py-7 text-[11px] tracking-widest focus-visible:ring-1 focus-visible:ring-accent"
+                className="rounded-full bg-[#1A102A] border border-white/15 text-white placeholder-zinc-500 px-5 py-5 text-xs tracking-wider focus-visible:ring-1 focus-visible:ring-white/30"
                 required
               />
             </div>
-            <Button type="submit" className="w-full rounded-full bg-primary py-8 text-[10px] tracking-[0.6em] font-bold hover:bg-primary/90 transition-all shadow-xl hover:shadow-primary/20">
-              {isLogin ? 'ENTER CABINET' : 'REGISTER PROFILE'}
+            <Button 
+              type="submit" 
+              className="w-full rounded-full calm-primary-btn py-5 text-xs tracking-widest font-semibold uppercase transition-all"
+            >
+              {isLogin ? 'Sign In' : 'Register'}
             </Button>
-            <div className="text-center pt-4">
+
+            <div className="text-center pt-1">
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-[9px] uppercase tracking-[0.4em] font-bold text-muted-foreground hover:text-accent transition-all underline underline-offset-8 decoration-primary/10 hover:decoration-accent/40"
+                className="text-[11px] text-zinc-400 hover:text-white transition-colors"
               >
-                {isLogin ? "Request Membership Profile" : 'Have an existing profile? Sign In'}
+                {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
               </button>
             </div>
           </form>
