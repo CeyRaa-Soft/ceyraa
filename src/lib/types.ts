@@ -19,6 +19,8 @@ export interface Product {
   discountPrice?: number;
   variants: ColorVariant[];
   mediaVideoUrl?: string;
+  sizeChartText?: string;
+  sizeChartImageUrl?: string;
   defaultCollection?: string;
   customCollection?: string;
   offer?: {

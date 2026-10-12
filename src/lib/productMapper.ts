@@ -81,6 +81,8 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
     discountPrice: effectiveDiscountPrice,
     variants: mappedVariants,
     mediaVideoUrl: design.mediaVideoUrl || undefined,
+    sizeChartText: design.sizeChartText || undefined,
+    sizeChartImageUrl: design.sizeChartImageUrl || undefined,
     defaultCollection: design.defaultCollection || undefined,
     customCollection: design.customCollection || undefined,
     offer: offer,

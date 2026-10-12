@@ -22,6 +22,7 @@ import {
   X,
   Play,
   Scan,
+  Ruler,
 } from "lucide-react";
 import { Product } from "@/lib/types";
 import { mapDesignToProduct } from "@/lib/productMapper";
@@ -49,6 +50,7 @@ export default function ProductPage({
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
   const [zoomPoss, setZoomPoss] = useState<{ [idx: number]: { x: number; y: number } }>({});
 
@@ -489,9 +491,14 @@ export default function ProductPage({
             <div className="space-y-3 pt-2">
               <div className="flex justify-between items-center text-xs tracking-wider uppercase font-medium">
                 <span className="text-zinc-400">Select Size</span>
-                <span className="text-xs text-[#D4AF37] hover:underline cursor-pointer">
-                  Size Guide
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsSizeGuideOpen(true)}
+                  className="text-xs text-[#D4AF37] hover:text-[#f3d46a] hover:underline cursor-pointer flex items-center gap-1 transition-colors"
+                >
+                  <Ruler className="w-3.5 h-3.5" />
+                  <span>Size Guide</span>
+                </button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {currentVariant.sizes.map((s) => {
@@ -648,6 +655,158 @@ export default function ProductPage({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Right-Hand Sliding Size Guide Sidebar */}
+      {isSizeGuideOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex justify-end animate-in fade-in duration-200"
+          onClick={() => setIsSizeGuideOpen(false)}
+        >
+          <div
+            className="w-full max-w-md sm:max-w-lg bg-[#0E071A] border-l border-white/10 h-full overflow-y-auto p-6 sm:p-8 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 select-text"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-5 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-[#D4AF37]/10 text-[#D4AF37]">
+                  <Ruler className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-headline text-lg sm:text-xl font-normal text-white">
+                    Size & Fitting Guide
+                  </h3>
+                  <p className="text-[11px] text-zinc-400 font-light">
+                    {product.name} ({product.category})
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsSizeGuideOpen(false)}
+                className="p-2 rounded-full bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white transition-colors"
+                title="Close (Esc)"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content Area */}
+            <div className="py-6 space-y-6 flex-1">
+              {/* Guidance / Measurement text */}
+              {product.sizeChartText ? (
+                <div className="calm-card p-4 sm:p-5 rounded-2xl border border-white/10 space-y-2">
+                  <span className="text-[10px] uppercase tracking-widest font-semibold text-[#D4AF37]">
+                    Measurements & Sizing Advice
+                  </span>
+                  <p className="text-xs sm:text-sm text-zinc-200 font-light leading-relaxed whitespace-pre-line">
+                    {product.sizeChartText}
+                  </p>
+                </div>
+              ) : (
+                <div className="calm-card p-4 sm:p-5 rounded-2xl border border-white/10 space-y-2">
+                  <span className="text-[10px] uppercase tracking-widest font-semibold text-[#D4AF37]">
+                    General Fit Information
+                  </span>
+                  <p className="text-xs text-zinc-300 font-light leading-relaxed">
+                    Designed to standard international sizing. For relaxed looks or if you are between two sizes, we recommend sizing up.
+                  </p>
+                </div>
+              )}
+
+              {/* Size Chart Image or Diagram */}
+              {product.sizeChartImageUrl ? (
+                <div className="space-y-2">
+                  <span className="text-[10px] uppercase tracking-widest font-semibold text-zinc-400 block">
+                    Garment Size Chart
+                  </span>
+                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 bg-[#120B20] p-2 shadow-lg">
+                    <img
+                      src={product.sizeChartImageUrl}
+                      alt={`${product.name} size chart`}
+                      className="w-full h-full object-contain rounded-xl"
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-400 text-center italic">
+                    Tap or inspect measurements closely according to your body dimensions.
+                  </p>
+                </div>
+              ) : (
+                /* Fallback standard garment chart preview if no custom diagram is uploaded */
+                <div className="space-y-3">
+                  <span className="text-[10px] uppercase tracking-widest font-semibold text-zinc-400 block">
+                    Standard Measurements Reference (Inches)
+                  </span>
+                  <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#120B20]">
+                    <table className="w-full text-[11px] text-left">
+                      <thead className="bg-white/5 text-[#D4AF37] uppercase text-[10px] tracking-wider">
+                        <tr>
+                          <th className="px-4 py-3">Size</th>
+                          <th className="px-4 py-3">Bust / Chest</th>
+                          <th className="px-4 py-3">Waist</th>
+                          <th className="px-4 py-3">Hips</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5 text-zinc-300 font-light">
+                        <tr>
+                          <td className="px-4 py-2.5 font-medium text-white">XS</td>
+                          <td className="px-4 py-2.5">31 - 32&quot;</td>
+                          <td className="px-4 py-2.5">24 - 25&quot;</td>
+                          <td className="px-4 py-2.5">34 - 35&quot;</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2.5 font-medium text-white">S</td>
+                          <td className="px-4 py-2.5">33 - 34&quot;</td>
+                          <td className="px-4 py-2.5">26 - 27&quot;</td>
+                          <td className="px-4 py-2.5">36 - 37&quot;</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2.5 font-medium text-white">M</td>
+                          <td className="px-4 py-2.5">35 - 36&quot;</td>
+                          <td className="px-4 py-2.5">28 - 29&quot;</td>
+                          <td className="px-4 py-2.5">38 - 39&quot;</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2.5 font-medium text-white">L</td>
+                          <td className="px-4 py-2.5">37 - 39&quot;</td>
+                          <td className="px-4 py-2.5">30 - 32&quot;</td>
+                          <td className="px-4 py-2.5">40 - 42&quot;</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2.5 font-medium text-white">XL</td>
+                          <td className="px-4 py-2.5">40 - 42&quot;</td>
+                          <td className="px-4 py-2.5">33 - 35&quot;</td>
+                          <td className="px-4 py-2.5">43 - 45&quot;</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Tips Section */}
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 space-y-1.5 text-xs text-zinc-400 font-light">
+                <span className="font-medium text-white text-[11px] block">How to Measure:</span>
+                <p>• <strong>Bust / Chest:</strong> Measure around the fullest part of your chest.</p>
+                <p>• <strong>Waist:</strong> Measure around your natural waistline.</p>
+                <p>• <strong>Hips:</strong> Measure around the fullest point of your hips.</p>
+              </div>
+            </div>
+
+            {/* Bottom button */}
+            <div className="pt-4 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setIsSizeGuideOpen(false)}
+                className="w-full calm-primary-btn py-3.5 rounded-full text-xs uppercase tracking-widest font-semibold"
+              >
+                Got It
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
