@@ -58,6 +58,7 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
       color: colorToHex(v.color),
       colorName: v.color,
       swatchUrl: v.swatchUrl || undefined,
+      mediaVideoUrl: v.mediaVideoUrl || undefined,
       images: colorImages,
       sizes: (v.sizes || []).map((s: any) => ({
         size: s.size,

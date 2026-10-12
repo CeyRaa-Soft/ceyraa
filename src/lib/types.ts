@@ -2,6 +2,7 @@ export interface ColorVariant {
   color: string;
   colorName: string;
   swatchUrl?: string;
+  mediaVideoUrl?: string;
   images: string[];
   sizes: {
     size: string;
