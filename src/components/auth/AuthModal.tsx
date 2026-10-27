@@ -9,9 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
+import { useToast } from '@/hooks/use-toast';
+
 export default function AuthModal() {
   const { isAuthModalOpen, setAuthModal } = useUIStore();
   const { login } = useAuthStore();
+  const { toast } = useToast();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
@@ -19,13 +23,25 @@ export default function AuthModal() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password) {
-      login(email);
+      login(email, isLogin ? undefined : name);
+      const displayName = (!isLogin && name.trim()) ? name.trim() : email.split('@')[0];
+      toast({
+        title: isLogin ? "Welcome Back" : "Account Created",
+        description: `Signed in as ${displayName}.`,
+      });
       setAuthModal(false);
+      setName('');
+      setEmail('');
+      setPassword('');
     }
   };
 
   const handleSocialSignIn = (provider: string) => {
-    login(`${provider.toLowerCase()}@example.com`);
+    login(`${provider.toLowerCase()}@example.com`, `${provider} User`);
+    toast({
+      title: "Signed In",
+      description: `Signed in with ${provider} successfully.`,
+    });
     setAuthModal(false);
   };
 
@@ -70,6 +86,22 @@ export default function AuthModal() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-1.5">
+                <Label htmlFor="auth-name" className="text-[10px] uppercase tracking-wider text-zinc-400 font-light ml-2">
+                  Full Name
+                </Label>
+                <Input
+                  id="auth-name"
+                  type="text"
+                  placeholder="e.g. Elena Rostova"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="rounded-full bg-[#1A102A] border border-white/15 text-white placeholder-zinc-500 px-5 py-5 text-xs tracking-wider focus-visible:ring-1 focus-visible:ring-white/30"
+                  required
+                />
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-[10px] uppercase tracking-wider text-zinc-400 font-light ml-2">
                 Email Address

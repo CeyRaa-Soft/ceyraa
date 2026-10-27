@@ -83,7 +83,7 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
     mediaVideoUrl: design.mediaVideoUrl || undefined,
     sizeChartText: design.sizeChartText || undefined,
     sizeChartImageUrl: design.sizeChartImageUrl || undefined,
-    defaultCollection: design.defaultCollection || undefined,
+    defaultCollection: design.defaultCollection || "Queen's Wardrobe",
     customCollection: design.customCollection || undefined,
     offer: offer,
     createdAt: design.createdAt || new Date().toISOString(),

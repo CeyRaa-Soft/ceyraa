@@ -112,6 +112,9 @@ const generateProducts = (): Product[] => {
       name: item.name,
       description: item.description,
       category: item.category,
+      defaultCollection: item.category.includes("King")
+        ? "King's Wardrobe"
+        : "Queen's Wardrobe",
       basePrice: item.basePrice,
       discountPrice: isDiscounted ? Math.floor(item.basePrice * 0.85) : undefined,
       isNew: idx < 4,

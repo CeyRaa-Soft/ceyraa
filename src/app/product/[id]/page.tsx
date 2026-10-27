@@ -53,6 +53,7 @@ export default function ProductPage({
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
   const [zoomPoss, setZoomPoss] = useState<{ [idx: number]: { x: number; y: number } }>({});
+  const [pendingAddToCart, setPendingAddToCart] = useState(false);
 
   // Reset active image when color variant changes
   useEffect(() => {
@@ -140,6 +141,32 @@ export default function ProductPage({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isLightboxOpen, imagesList.length]);
 
+  // Auto-add to bag when user logs in after attempting Add to Bag
+  useEffect(() => {
+    if (user && pendingAddToCart && product) {
+      setPendingAddToCart(false);
+      const curVariant = product.variants[selectedColorIdx] || product.variants[0];
+      if (selectedSize && curVariant) {
+        addItem({
+          productId: product.id,
+          productName: product.name,
+          color: curVariant.colorName,
+          size: selectedSize,
+          price: product.discountPrice || product.basePrice,
+          quantity: 1,
+          image:
+            curVariant.images[0] ||
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80",
+        });
+
+        toast({
+          title: "Added to Bag",
+          description: `${product.name} (${curVariant.colorName} / ${selectedSize}) has been added to your shopping bag.`,
+        });
+      }
+    }
+  }, [user, pendingAddToCart, product, selectedColorIdx, selectedSize, addItem]);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -191,16 +218,22 @@ export default function ProductPage({
   }
 
   const handleAddToCart = () => {
-    if (!user) {
-      setAuthModal(true);
-      return;
-    }
     if (!selectedSize) {
       toast({
         title: "Select a Size",
         description: "Please choose your desired size.",
         variant: "destructive",
       });
+      return;
+    }
+
+    if (!user) {
+      setPendingAddToCart(true);
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in or create an account to add items to your shopping bag.",
+      });
+      setAuthModal(true);
       return;
     }
 
@@ -218,7 +251,7 @@ export default function ProductPage({
 
     toast({
       title: "Added to Bag",
-      description: `${product.name} (${currentVariant.colorName} / ${selectedSize}) has been added.`,
+      description: `${product.name} (${currentVariant.colorName} / ${selectedSize}) has been added to your shopping bag.`,
     });
   };
 
@@ -367,12 +400,12 @@ export default function ProductPage({
 
                     {/* Color Variant GIF or Video Slot in the 2-per-row grid */}
                     {currentVideo && (
-                      <div className="relative w-full aspect-[3/4] bg-black/90 overflow-hidden rounded-3xl border-2 border-purple-500/40 shadow-xl group">
+                      <div className="relative w-full aspect-[3/4] bg-[#0E071A] overflow-hidden rounded-3xl border border-white/10 shadow-xl group">
                         {currentVideo.match(/\.(gif)(\?.*)?$/i) ? (
                           <img
                             src={currentVideo}
-                            alt={`${product.name} animation`}
-                            className="w-full h-full object-cover"
+                            alt={`${product.name} showcase`}
+                            className="w-full h-full object-cover object-top"
                           />
                         ) : (
                           <video
@@ -382,12 +415,9 @@ export default function ProductPage({
                             muted
                             playsInline
                             controls
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover object-top"
                           />
                         )}
-                        <span className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full bg-purple-600/90 backdrop-blur-md text-[10px] font-bold tracking-wider uppercase text-white shadow-sm border border-purple-400/30">
-                          {currentVariant.colorName} GIF
-                        </span>
                       </div>
                     )}
                   </div>
@@ -665,7 +695,7 @@ export default function ProductPage({
           onClick={() => setIsSizeGuideOpen(false)}
         >
           <div
-            className="w-full max-w-md sm:max-w-lg bg-[#0E071A] border-l border-white/10 h-full overflow-y-auto p-6 sm:p-8 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 select-text"
+            className="w-full sm:max-w-xl md:max-w-2xl lg:max-w-[720px] xl:max-w-[780px] bg-[#0E071A] border-l border-white/10 h-full overflow-y-auto p-6 sm:p-8 md:p-10 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 select-text"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -717,22 +747,21 @@ export default function ProductPage({
                 </div>
               )}
 
-              {/* Size Chart Image or Diagram */}
+              {/* Size Chart Image or Diagram - Displayed in full native resolution without cropping */}
               {product.sizeChartImageUrl ? (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <span className="text-[10px] uppercase tracking-widest font-semibold text-zinc-400 block">
                     Garment Size Chart
                   </span>
-                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 bg-[#120B20] p-2 shadow-lg">
+
+                  {/* Clean uncropped container preserving natural width/height ratio and crisp text */}
+                  <div className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-[#120B20] p-2 sm:p-3 shadow-xl">
                     <img
                       src={product.sizeChartImageUrl}
                       alt={`${product.name} size chart`}
-                      className="w-full h-full object-contain rounded-xl"
+                      className="w-full h-auto max-h-[75vh] object-contain rounded-xl mx-auto"
                     />
                   </div>
-                  <p className="text-[10px] text-zinc-400 text-center italic">
-                    Tap or inspect measurements closely according to your body dimensions.
-                  </p>
                 </div>
               ) : (
                 /* Fallback standard garment chart preview if no custom diagram is uploaded */

@@ -2,16 +2,25 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingBag, Menu, X, User as UserIcon } from 'lucide-react';
+import { ShoppingBag, Menu, X, User as UserIcon, LogOut, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuthStore, useCartStore, useUIStore } from '@/store/useStore';
+import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const cartItems = useCartStore((state) => state.items);
   const { setAuthModal } = useUIStore();
+  const { toast } = useToast();
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -81,12 +90,45 @@ export default function Navbar() {
         <div className="flex items-center justify-end flex-1 space-x-6 pl-6 lg:pl-10">
           <div className="hidden lg:flex items-center space-x-5">
             {user ? (
-              <Link 
-                href="/account" 
-                className="text-[11px] tracking-[0.2em] uppercase text-zinc-300 hover:text-white transition-colors font-medium border border-white/15 px-4 py-1.5 rounded-full"
-              >
-                {user.name}
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase text-zinc-300 hover:text-white transition-colors font-medium border border-white/15 px-4 py-1.5 rounded-full hover:border-[#D4AF37]/50 focus:outline-none bg-white/5">
+                  <UserIcon className="h-3 w-3 text-[#D4AF37]" />
+                  <span>{user.name}</span>
+                  <ChevronDown className="h-3 w-3 text-zinc-400" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52 bg-[#140C24] border border-white/15 text-white rounded-2xl p-1.5 shadow-2xl z-[120]">
+                  <div className="px-3 py-2 border-b border-white/10">
+                    <p className="text-[10px] uppercase tracking-wider text-zinc-400">Signed in as</p>
+                    <p className="text-xs font-medium text-white truncate">{user.email}</p>
+                  </div>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account" className="flex items-center gap-2 px-3 py-2 text-xs text-zinc-200 hover:text-white hover:bg-white/10 rounded-xl cursor-pointer">
+                      <UserIcon className="h-3.5 w-3.5 text-[#D4AF37]" />
+                      <span>My Account</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/cart" className="flex items-center gap-2 px-3 py-2 text-xs text-zinc-200 hover:text-white hover:bg-white/10 rounded-xl cursor-pointer">
+                      <ShoppingBag className="h-3.5 w-3.5 text-[#D4AF37]" />
+                      <span>Shopping Bag ({cartCount})</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/10 my-1" />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      logout();
+                      toast({
+                        title: "Signed Out",
+                        description: "You have been signed out successfully.",
+                      });
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl cursor-pointer"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <button 
                 onClick={() => setAuthModal(true)} 
@@ -183,8 +225,32 @@ export default function Navbar() {
           <div className="w-24 h-[1px] bg-white/10 my-2" />
 
           {user ? (
-            <div className="text-xs tracking-widest uppercase text-zinc-300">
-              Account: {user.name}
+            <div className="flex flex-col items-center space-y-4 pt-2">
+              <div className="text-xs tracking-widest uppercase text-zinc-400">
+                Signed in as <span className="text-white font-medium">{user.name}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full max-w-xs">
+                <Link 
+                  href="/account" 
+                  onClick={() => setIsOpen(false)} 
+                  className="calm-primary-btn w-full py-2.5 rounded-full text-xs tracking-widest uppercase font-semibold text-center"
+                >
+                  My Account
+                </Link>
+                <button 
+                  onClick={() => {
+                    logout();
+                    setIsOpen(false);
+                    toast({
+                      title: "Signed Out",
+                      description: "You have been signed out successfully.",
+                    });
+                  }} 
+                  className="w-full py-2.5 rounded-full border border-white/20 text-xs tracking-widest uppercase text-zinc-300 hover:text-white hover:border-white/40 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
             </div>
           ) : (
             <button 
