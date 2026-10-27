@@ -356,7 +356,7 @@ export default function ProductPage({
                                 priority={idx === 0}
                                 unoptimized={true}
                                 sizes="(max-width: 1024px) 100vw, 600px"
-                                className="object-cover object-top transition-all duration-300"
+                                className="object-contain object-center transition-all duration-300"
                               />
                             </div>
 
@@ -418,7 +418,7 @@ export default function ProductPage({
                           <img
                             src={currentVideo}
                             alt={`${product.name} showcase`}
-                            className="w-full h-full object-cover object-top"
+                            className="w-full h-full object-contain object-center"
                           />
                         ) : (
                           <video
@@ -428,7 +428,7 @@ export default function ProductPage({
                             muted
                             playsInline
                             controls
-                            className="w-full h-full object-cover object-top"
+                            className="w-full h-full object-contain object-center"
                           />
                         )}
                       </div>
