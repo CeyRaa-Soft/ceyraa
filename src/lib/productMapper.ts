@@ -58,6 +58,7 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
       color: colorToHex(v.color),
       colorName: v.color,
       swatchUrl: v.swatchUrl || undefined,
+      mediaVideoUrl: v.mediaVideoUrl || undefined,
       images: colorImages,
       sizes: (v.sizes || []).map((s: any) => ({
         size: s.size,
@@ -80,7 +81,9 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
     discountPrice: effectiveDiscountPrice,
     variants: mappedVariants,
     mediaVideoUrl: design.mediaVideoUrl || undefined,
-    defaultCollection: design.defaultCollection || undefined,
+    sizeChartText: design.sizeChartText || undefined,
+    sizeChartImageUrl: design.sizeChartImageUrl || undefined,
+    defaultCollection: design.defaultCollection || "Queen's Wardrobe",
     customCollection: design.customCollection || undefined,
     offer: offer,
     createdAt: design.createdAt || new Date().toISOString(),

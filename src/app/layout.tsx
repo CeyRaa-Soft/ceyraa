@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "CEYRAA | Fashion & Wardrobe",
@@ -32,7 +33,10 @@ export default function RootLayout({
           <div className="calm-glow-orb calm-glow-2" />
         </div>
 
-        <div className="relative z-0 min-h-screen">{children}</div>
+        <div className="relative z-0 min-h-screen">
+          {children}
+          <Toaster />
+        </div>
       </body>
     </html>
   );

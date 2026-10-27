@@ -2,9 +2,23 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem } from '@/lib/types';
 
+export interface UserProfile {
+  name: string;
+  email: string;
+  primaryPhone?: string;
+  secondaryPhone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  postalCode?: string;
+  phone?: string;
+  address?: string;
+}
+
 interface AuthState {
-  user: { name: string; email: string } | null;
-  login: (email: string) => void;
+  user: UserProfile | null;
+  login: (email: string, name?: string) => void;
+  updateUser: (data: Partial<UserProfile>) => void;
   logout: () => void;
 }
 
@@ -12,7 +26,15 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      login: (email) => set({ user: { name: email.split('@')[0], email } }),
+      login: (email, name) => {
+        const rawName = name?.trim() || email.split('@')[0];
+        const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+        set({ user: { name: formattedName, email } });
+      },
+      updateUser: (data) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...data } : null,
+        })),
       logout: () => set({ user: null }),
     }),
     { name: 'ceyraa-auth' }

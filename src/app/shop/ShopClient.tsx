@@ -50,18 +50,34 @@ export default function ShopClient() {
         setLoading(true);
         const API_URL =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-        const [catsRes, designsRes] = await Promise.all([
+        const [catsRes, designsRes, collsRes] = await Promise.all([
           fetch(`${API_URL}/api/admin/dress-categories`),
           fetch(`${API_URL}/api/admin/designs`),
+          fetch(`${API_URL}/api/admin/collections`).catch(() => null),
         ]);
 
         if (catsRes.ok && designsRes.ok) {
           const catsData = await catsRes.json();
           const designsData = await designsRes.json();
+          const collsData = collsRes && collsRes.ok ? await collsRes.json() : [];
 
-          if (Array.isArray(catsData) && catsData.length > 0) {
-            setCategories(["All", ...catsData.map((c: any) => c.name)]);
-          }
+          const customCollsNames = Array.isArray(collsData)
+            ? collsData.map((c: any) => c.name)
+            : [];
+          const dressCatNames = Array.isArray(catsData)
+            ? catsData.map((c: any) => c.name)
+            : [];
+
+          const allPills = Array.from(
+            new Set([
+              "All",
+              "Queen's Wardrobe",
+              "King's Wardrobe",
+              ...customCollsNames,
+              ...dressCatNames,
+            ])
+          );
+          setCategories(allPills);
 
           if (Array.isArray(designsData) && designsData.length > 0) {
             const mapped = designsData.map((design: any) =>
@@ -91,18 +107,40 @@ export default function ShopClient() {
       if (selectedCategory === "New Arrivals") {
         result = result.filter((p) => p.isNew);
       } else {
-        const catLower = selectedCategory.toLowerCase();
+        const catLower = selectedCategory.trim().toLowerCase();
+        const isQueenFilter = catLower.includes("queen");
+        const isKingFilter = catLower.includes("king");
+
         result = result.filter((p) => {
-          const matchCategory =
-            p.category?.toLowerCase().includes(catLower) ||
-            catLower.includes(p.category?.toLowerCase() || "");
-          const matchDefault =
-            p.defaultCollection?.toLowerCase().includes(catLower) ||
-            catLower.includes(p.defaultCollection?.toLowerCase() || "");
-          const matchCustom =
-            p.customCollection?.toLowerCase().includes(catLower) ||
-            catLower.includes(p.customCollection?.toLowerCase() || "");
-          return matchCategory || matchDefault || matchCustom;
+          const prodDefault = (p.defaultCollection || "Queen's Wardrobe").trim().toLowerCase();
+          const prodCustom = (p.customCollection || "").trim().toLowerCase();
+          const prodCategory = (p.category || "").trim().toLowerCase();
+
+          // 1. If filtering by Queen's Wardrobe: must be assigned to Queen's Wardrobe
+          if (isQueenFilter) {
+            return prodDefault.includes("queen");
+          }
+
+          // 2. If filtering by King's Wardrobe: must be assigned to King's Wardrobe
+          if (isKingFilter) {
+            return prodDefault.includes("king");
+          }
+
+          // 3. If filtering by Custom Collection or Category:
+          const matchCustom = Boolean(
+            prodCustom &&
+              (prodCustom === catLower ||
+                prodCustom.includes(catLower) ||
+                catLower.includes(prodCustom))
+          );
+          const matchCategory = Boolean(
+            prodCategory &&
+              (prodCategory === catLower ||
+                prodCategory.includes(catLower) ||
+                catLower.includes(prodCategory))
+          );
+
+          return matchCustom || matchCategory;
         });
       }
     }
