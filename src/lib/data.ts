@@ -104,9 +104,21 @@ const CURATED_PIECES: DressTemplate[] = [
   }
 ];
 
+const PRODUCT_SIZES_PRESETS = [
+  ['XS', 'S', 'M', 'L', 'XL'],
+  ['S', 'M', 'L'],
+  ['Free Size'],
+  ['S', 'M'],
+  ['Free Size - Small', 'Free Size - Large'],
+  ['M', 'L', 'XL'],
+  ['XS', 'S', 'M'],
+  ['Free Size'],
+];
+
 const generateProducts = (): Product[] => {
   return CURATED_PIECES.map((item, idx) => {
     const isDiscounted = idx % 3 === 0;
+    const itemSizes = PRODUCT_SIZES_PRESETS[idx % PRODUCT_SIZES_PRESETS.length];
     return {
       id: `p${idx + 1}`,
       name: item.name,
@@ -117,6 +129,7 @@ const generateProducts = (): Product[] => {
         : "Queen's Wardrobe",
       basePrice: item.basePrice,
       discountPrice: isDiscounted ? Math.floor(item.basePrice * 0.85) : undefined,
+      availableSizes: itemSizes,
       isNew: idx < 4,
       isTrending: idx >= 4,
       createdAt: '2025-01-01T00:00:00.000Z',
@@ -124,7 +137,7 @@ const generateProducts = (): Product[] => {
         color: color.hex,
         colorName: color.name,
         images: [item.image1, item.image2],
-        sizes: SIZES.map((size, sIdx) => ({
+        sizes: itemSizes.map((size, sIdx) => ({
           size,
           stock: (idx + sIdx + 2) % 6,
         }))
