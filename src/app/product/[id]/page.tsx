@@ -332,7 +332,7 @@ export default function ProductPage({
                       return (
                         <div
                           key={idx}
-                          className="relative w-full aspect-[3/4] bg-[#0E071A] overflow-hidden rounded-3xl border border-white/10 group shadow-xl"
+                          className="relative w-full aspect-[2/3] bg-[#0E071A] overflow-hidden rounded-3xl border border-white/10 group shadow-xl"
                         >
                           <div
                             className={cn(
@@ -356,7 +356,7 @@ export default function ProductPage({
                                 priority={idx === 0}
                                 unoptimized={true}
                                 sizes="(max-width: 1024px) 100vw, 600px"
-                                className="object-contain object-center transition-all duration-300"
+                                className="object-cover object-center transition-all duration-300"
                               />
                             </div>
 
@@ -413,12 +413,12 @@ export default function ProductPage({
 
                     {/* Color Variant GIF or Video Slot in the 2-per-row grid */}
                     {currentVideo && (
-                      <div className="relative w-full aspect-[3/4] bg-[#0E071A] overflow-hidden rounded-3xl border border-white/10 shadow-xl group">
+                      <div className="relative w-full aspect-[2/3] bg-[#0E071A] overflow-hidden rounded-3xl border border-white/10 shadow-xl group">
                         {currentVideo.match(/\.(gif)(\?.*)?$/i) ? (
                           <img
                             src={currentVideo}
                             alt={`${product.name} showcase`}
-                            className="w-full h-full object-contain object-center"
+                            className="w-full h-full object-cover object-center"
                           />
                         ) : (
                           <video
@@ -428,7 +428,7 @@ export default function ProductPage({
                             muted
                             playsInline
                             controls
-                            className="w-full h-full object-contain object-center"
+                            className="w-full h-full object-cover object-center"
                           />
                         )}
                       </div>
@@ -437,7 +437,7 @@ export default function ProductPage({
                 </div>
               </div>
             ) : (
-              <div className="relative aspect-[3/4] w-full max-h-[calc(100vh-14rem)] bg-[#140C24] border border-white/10 rounded-3xl flex flex-col items-center justify-center p-8 space-y-3">
+              <div className="relative aspect-[2/3] w-full max-h-[calc(100vh-14rem)] bg-[#140C24] border border-white/10 rounded-3xl flex flex-col items-center justify-center p-8 space-y-3">
                 <div className="relative h-7 w-28 opacity-40">
                   <Image
                     src="/assets/1.1.png"

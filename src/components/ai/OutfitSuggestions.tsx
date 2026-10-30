@@ -80,7 +80,7 @@ export default function OutfitSuggestions({ currentItems }: { currentItems: Prod
         {loading ? (
           [1, 2, 3].map(i => (
             <div key={i} className="calm-card p-4 rounded-2xl space-y-3">
-              <Skeleton className="aspect-[3/4] w-full bg-[#180F2A] rounded-xl" />
+              <Skeleton className="aspect-[2/3] w-full bg-[#180F2A] rounded-xl" />
               <Skeleton className="h-4 w-2/3 mx-auto bg-[#180F2A]" />
               <Skeleton className="h-3 w-1/2 mx-auto bg-[#180F2A]" />
             </div>
@@ -88,7 +88,7 @@ export default function OutfitSuggestions({ currentItems }: { currentItems: Prod
         ) : (
           suggestions?.suggestions.map((item, idx) => (
             <div key={idx} className="group relative flex flex-col items-center text-center space-y-3 calm-card p-4 rounded-2xl border border-white/5">
-              <div className="relative aspect-[3/4] w-full bg-[#140C24] rounded-xl overflow-hidden">
+              <div className="relative aspect-[2/3] w-full bg-[#140C24] rounded-xl overflow-hidden">
                 <Image
                   src={item.imageUrl || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80"}
                   alt={item.name}
