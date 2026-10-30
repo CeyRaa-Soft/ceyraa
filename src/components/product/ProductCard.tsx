@@ -68,7 +68,7 @@ export default function ProductCard({ product }: { product: Product }) {
       <Link 
         href={`/product/${product.id}`} 
         className={cn(
-          "relative aspect-[3/4] w-full overflow-hidden rounded-2xl bg-[#140C24] transition-all duration-700",
+          "relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-[#140C24] transition-all duration-700",
           isAnimated 
             ? "border border-[#D4AF37]/35 shadow-[0_16px_36px_-12px_rgba(212,175,55,0.12),0_8px_20px_rgba(0,0,0,0.4)]" 
             : "border border-white/5 shadow-none"

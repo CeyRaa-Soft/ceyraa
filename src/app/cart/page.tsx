@@ -102,7 +102,7 @@ export default function CartPage() {
                   key={`${item.productId}-${item.color}-${item.size}`} 
                   className="flex flex-col sm:flex-row gap-5 calm-card p-5 rounded-2xl border border-white/10"
                 >
-                  <div className="relative aspect-[3/4] w-full sm:w-32 flex-shrink-0 bg-[#140C24] rounded-xl overflow-hidden">
+                  <div className="relative aspect-[2/3] w-full sm:w-32 flex-shrink-0 bg-[#140C24] rounded-xl overflow-hidden">
                     <Image 
                       src={item.image || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80"} 
                       alt={item.productName} 
