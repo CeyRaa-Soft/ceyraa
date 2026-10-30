@@ -21,6 +21,7 @@ export interface Product {
   mediaVideoUrl?: string;
   sizeChartText?: string;
   sizeChartImageUrl?: string;
+  availableSizes?: string[];
   defaultCollection?: string;
   customCollection?: string;
   offer?: {

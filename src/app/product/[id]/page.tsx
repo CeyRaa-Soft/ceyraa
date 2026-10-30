@@ -167,6 +167,19 @@ export default function ProductPage({
     }
   }, [user, pendingAddToCart, product, selectedColorIdx, selectedSize, addItem]);
 
+  // Auto-select size if only one size exists, or validate selectedSize
+  useEffect(() => {
+    if (!currentVariant?.sizes?.length) return;
+    if (currentVariant.sizes.length === 1) {
+      setSelectedSize(currentVariant.sizes[0].size);
+    } else if (selectedSize) {
+      const exists = currentVariant.sizes.some((s) => s.size === selectedSize);
+      if (!exists) {
+        setSelectedSize(null);
+      }
+    }
+  }, [currentVariant?.sizes, selectedSize]);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -343,7 +356,7 @@ export default function ProductPage({
                                 priority={idx === 0}
                                 unoptimized={true}
                                 sizes="(max-width: 1024px) 100vw, 600px"
-                                className="object-cover object-top transition-all duration-300"
+                                className="object-contain object-center transition-all duration-300"
                               />
                             </div>
 
@@ -405,7 +418,7 @@ export default function ProductPage({
                           <img
                             src={currentVideo}
                             alt={`${product.name} showcase`}
-                            className="w-full h-full object-cover object-top"
+                            className="w-full h-full object-contain object-center"
                           />
                         ) : (
                           <video
@@ -415,7 +428,7 @@ export default function ProductPage({
                             muted
                             playsInline
                             controls
-                            className="w-full h-full object-cover object-top"
+                            className="w-full h-full object-contain object-center"
                           />
                         )}
                       </div>
@@ -540,9 +553,9 @@ export default function ProductPage({
                       disabled={isOutOfStock}
                       onClick={() => setSelectedSize(s.size)}
                       className={cn(
-                        "w-11 h-11 rounded-xl border text-xs font-medium transition-all duration-200 flex items-center justify-center",
+                        "min-w-[2.75rem] h-11 px-3.5 rounded-xl border text-xs font-medium transition-all duration-200 flex items-center justify-center whitespace-nowrap",
                         isSelected
-                          ? "calm-primary-btn border-white"
+                          ? "calm-primary-btn border-white shadow-md shadow-[#D4AF37]/20"
                           : "calm-glass text-zinc-300 border-white/10 hover:border-white/30 hover:text-white",
                         isOutOfStock &&
                           "opacity-20 cursor-not-allowed line-through",

@@ -54,16 +54,29 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
       colorImages = ["https://placehold.co/800x1200?text=No+Image"];
     }
 
+    const rawSizes = (v.sizes || []).map((s: any) => ({
+      size: s.size,
+      stock: s.quantity || 0,
+    }));
+
+    let finalSizes = rawSizes;
+    if (design.availableSizes && Array.isArray(design.availableSizes) && design.availableSizes.length > 0) {
+      const allowedLower = design.availableSizes.map((as: string) => as.trim().toLowerCase());
+      const matched = rawSizes.filter((s: any) => allowedLower.includes(s.size.trim().toLowerCase()));
+      const existingSizeNames = new Set(matched.map((s: any) => s.size.trim().toLowerCase()));
+      const missing = design.availableSizes
+        .filter((as: string) => !existingSizeNames.has(as.trim().toLowerCase()))
+        .map((as: string) => ({ size: as, stock: 0 }));
+      finalSizes = [...matched, ...missing];
+    }
+
     return {
       color: colorToHex(v.color),
       colorName: v.color,
       swatchUrl: v.swatchUrl || undefined,
       mediaVideoUrl: v.mediaVideoUrl || undefined,
       images: colorImages,
-      sizes: (v.sizes || []).map((s: any) => ({
-        size: s.size,
-        stock: s.quantity || 0,
-      })),
+      sizes: finalSizes,
     };
   });
 
@@ -83,6 +96,7 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
     mediaVideoUrl: design.mediaVideoUrl || undefined,
     sizeChartText: design.sizeChartText || undefined,
     sizeChartImageUrl: design.sizeChartImageUrl || undefined,
+    availableSizes: design.availableSizes || undefined,
     defaultCollection: design.defaultCollection || "Queen's Wardrobe",
     customCollection: design.customCollection || undefined,
     offer: offer,
