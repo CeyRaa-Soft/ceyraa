@@ -35,8 +35,9 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
     }
   }
 
-  const categoryName =
-    categories.find((c: any) => c.id === design.categoryId)?.name || "Dresses";
+  const matchedCategory = categories.find((c: any) => c.id === design.categoryId);
+  const categoryName = matchedCategory?.name || "Dresses";
+  const effectiveWardrobe = matchedCategory?.wardrobeType || design.defaultCollection || "Queen's Wardrobe";
 
   const mappedVariants = (design.variants || []).map((v: any) => {
     let colorImages = (design.images || [])
@@ -97,7 +98,7 @@ export const mapDesignToProduct = (design: any, categories: any[]): Product => {
     sizeChartText: design.sizeChartText || undefined,
     sizeChartImageUrl: design.sizeChartImageUrl || undefined,
     availableSizes: design.availableSizes || undefined,
-    defaultCollection: design.defaultCollection || "Queen's Wardrobe",
+    defaultCollection: effectiveWardrobe,
     customCollection: design.customCollection || undefined,
     offer: offer,
     createdAt: design.createdAt || new Date().toISOString(),

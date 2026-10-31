@@ -1,3 +1,10 @@
+export interface DressCategory {
+  id: string;
+  name: string;
+  prefix?: string;
+  wardrobeType?: "Queen's Wardrobe" | "King's Wardrobe";
+}
+
 export interface ColorVariant {
   color: string;
   colorName: string;

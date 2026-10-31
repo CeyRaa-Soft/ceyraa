@@ -46,13 +46,13 @@ export default function Navbar() {
             The Balcony
           </Link>
           <Link 
-            href="/shop?category=Queen%27s%20Wardrobe" 
+            href="/shop?wardrobe=Queen%27s%20Wardrobe" 
             className="text-[11px] font-medium tracking-[0.2em] uppercase text-zinc-300 hover:text-white transition-colors hover-gold-line"
           >
             Queen's Wardrobe
           </Link>
           <Link 
-            href="/shop?category=King%27s%20Wardrobe" 
+            href="/shop?wardrobe=King%27s%20Wardrobe" 
             className="text-[11px] font-medium tracking-[0.2em] uppercase text-zinc-300 hover:text-white transition-colors hover-gold-line"
           >
             King's Wardrobe
@@ -201,14 +201,14 @@ export default function Navbar() {
             The Balcony
           </Link>
           <Link 
-            href="/shop?category=Queen%27s%20Wardrobe" 
+            href="/shop?wardrobe=Queen%27s%20Wardrobe" 
             onClick={() => setIsOpen(false)} 
             className="text-xl font-headline tracking-widest text-zinc-200 hover:text-white"
           >
             Queen's Wardrobe
           </Link>
           <Link 
-            href="/shop?category=King%27s%20Wardrobe" 
+            href="/shop?wardrobe=King%27s%20Wardrobe" 
             onClick={() => setIsOpen(false)} 
             className="text-xl font-headline tracking-widest text-zinc-200 hover:text-white"
           >
