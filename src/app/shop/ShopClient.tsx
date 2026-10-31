@@ -6,7 +6,7 @@ import AuthModal from "@/components/auth/AuthModal";
 import ProductCard from "@/components/product/ProductCard";
 import { mapDesignToProduct } from "@/lib/productMapper";
 import { PRODUCTS } from "@/lib/data";
-import { Product } from "@/lib/types";
+import { Product, DressCategory } from "@/lib/types";
 import {
   Select,
   SelectContent,
@@ -14,36 +14,78 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SlidersHorizontal } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { SlidersHorizontal, ArrowLeft } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function ShopClient() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [sortBy, setBy] = useState("latest");
+  const [isCollectionsMode, setIsCollectionsMode] = useState(false);
+  const [activeWardrobe, setActiveWardrobe] = useState<string | null>(null);
+  const [activeCollection, setActiveCollection] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange] = useState<[number, number]>([0, 500000]);
 
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
-  const [categories, setCategories] = useState<string[]>([
-    "All",
-    "Queen's Wardrobe",
-    "King's Wardrobe",
-    "Outerwear",
-    "New Arrivals",
-  ]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [backendCategories, setBackendCategories] = useState<DressCategory[]>([]);
+  const [customCollectionsList, setCustomCollectionsList] = useState<{ id: string; name: string; description?: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Sync query parameter safely
+  // Parse and sync query parameters safely
   useEffect(() => {
-    const category = searchParams.get("category");
-    if (category) {
-      setSelectedCategory(category);
-    }
-  }, [searchParams]);
+    const wardrobeParam = searchParams.get("wardrobe");
+    const collectionParam = searchParams.get("collection");
+    const categoryParam = searchParams.get("category");
+    const viewParam = searchParams.get("view");
 
-  // Fetch categories and designs from backend with fallback
+    if (viewParam === "collections" || collectionParam) {
+      setIsCollectionsMode(true);
+      setActiveCollection(collectionParam || null);
+      setActiveWardrobe(null);
+      setSelectedCategory("All");
+    } else if (wardrobeParam) {
+      setIsCollectionsMode(false);
+      setActiveWardrobe(wardrobeParam);
+      setActiveCollection(null);
+      setSelectedCategory(categoryParam || "All");
+    } else if (categoryParam) {
+      setIsCollectionsMode(false);
+      const lower = categoryParam.trim().toLowerCase();
+      if (lower.includes("queen")) {
+        setActiveWardrobe("Queen's Wardrobe");
+        setActiveCollection(null);
+        setSelectedCategory("All");
+      } else if (lower.includes("king")) {
+        setActiveWardrobe("King's Wardrobe");
+        setActiveCollection(null);
+        setSelectedCategory("All");
+      } else {
+        // Check if matches known custom collection
+        const isCustom = customCollectionsList.some(
+          (c) => c.name.toLowerCase() === lower
+        );
+        if (isCustom) {
+          setIsCollectionsMode(true);
+          setActiveCollection(categoryParam);
+          setActiveWardrobe(null);
+          setSelectedCategory("All");
+        } else {
+          setSelectedCategory(categoryParam);
+        }
+      }
+    } else {
+      setIsCollectionsMode(false);
+      setActiveWardrobe(null);
+      setActiveCollection(null);
+      setSelectedCategory("All");
+    }
+  }, [searchParams, customCollectionsList]);
+
+  // Fetch categories, designs, and collections from backend with fallback
   useEffect(() => {
     const fetchCollection = async () => {
       try {
@@ -57,31 +99,16 @@ export default function ShopClient() {
         ]);
 
         if (catsRes.ok && designsRes.ok) {
-          const catsData = await catsRes.json();
+          const catsData: DressCategory[] = await catsRes.json();
           const designsData = await designsRes.json();
           const collsData = collsRes && collsRes.ok ? await collsRes.json() : [];
 
-          const customCollsNames = Array.isArray(collsData)
-            ? collsData.map((c: any) => c.name)
-            : [];
-          const dressCatNames = Array.isArray(catsData)
-            ? catsData.map((c: any) => c.name)
-            : [];
-
-          const allPills = Array.from(
-            new Set([
-              "All",
-              "Queen's Wardrobe",
-              "King's Wardrobe",
-              ...customCollsNames,
-              ...dressCatNames,
-            ])
-          );
-          setCategories(allPills);
+          setBackendCategories(Array.isArray(catsData) ? catsData : []);
+          setCustomCollectionsList(Array.isArray(collsData) ? collsData : []);
 
           if (Array.isArray(designsData) && designsData.length > 0) {
             const mapped = designsData.map((design: any) =>
-              mapDesignToProduct(design, catsData),
+              mapDesignToProduct(design, catsData)
             );
             setProducts(mapped);
           } else {
@@ -100,73 +127,175 @@ export default function ShopClient() {
     fetchCollection();
   }, []);
 
+  // Compute dynamic filter pills (Collections pills in Collections mode, or Category pills in Wardrobe mode)
+  const filterPills = useMemo(() => {
+    if (isCollectionsMode) {
+      // Collections view: show the collections as filters!
+      const colNames = Array.from(
+        new Set(customCollectionsList.map((c) => c.name).filter(Boolean))
+      );
+      return ["All", ...colNames];
+    }
+
+    if (activeWardrobe) {
+      const isKing = activeWardrobe.toLowerCase().includes("king");
+      const filteredCats = backendCategories.filter((c) => {
+        const catWardrobe = c.wardrobeType || "Queen's Wardrobe";
+        return isKing
+          ? catWardrobe.toLowerCase().includes("king")
+          : catWardrobe.toLowerCase().includes("queen");
+      });
+
+      const catNames = Array.from(new Set(filteredCats.map((c) => c.name)));
+      return ["All", ...catNames];
+    }
+
+    // Default: viewing all wardrobe types
+    return [
+      "All",
+      "Queen's Wardrobe",
+      "King's Wardrobe",
+      ...Array.from(new Set(backendCategories.map((c) => c.name))),
+    ];
+  }, [
+    isCollectionsMode,
+    activeWardrobe,
+    customCollectionsList,
+    backendCategories,
+    products,
+  ]);
+
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
-    if (selectedCategory !== "All") {
-      if (selectedCategory === "New Arrivals") {
-        result = result.filter((p) => p.isNew);
-      } else {
-        const catLower = selectedCategory.trim().toLowerCase();
-        const isQueenFilter = catLower.includes("queen");
-        const isKingFilter = catLower.includes("king");
-
+    // 1. Collections Mode: Scope by Custom Collection
+    if (isCollectionsMode) {
+      if (activeCollection && activeCollection !== "All") {
+        const colLower = activeCollection.trim().toLowerCase();
         result = result.filter((p) => {
-          const prodDefault = (p.defaultCollection || "Queen's Wardrobe").trim().toLowerCase();
-          const prodCustom = (p.customCollection || "").trim().toLowerCase();
-          const prodCategory = (p.category || "").trim().toLowerCase();
-
-          // 1. If filtering by Queen's Wardrobe: must be assigned to Queen's Wardrobe
-          if (isQueenFilter) {
-            return prodDefault.includes("queen");
-          }
-
-          // 2. If filtering by King's Wardrobe: must be assigned to King's Wardrobe
-          if (isKingFilter) {
-            return prodDefault.includes("king");
-          }
-
-          // 3. If filtering by Custom Collection or Category:
-          const matchCustom = Boolean(
-            prodCustom &&
-              (prodCustom === catLower ||
-                prodCustom.includes(catLower) ||
-                catLower.includes(prodCustom))
-          );
-          const matchCategory = Boolean(
-            prodCategory &&
-              (prodCategory === catLower ||
-                prodCategory.includes(catLower) ||
-                catLower.includes(prodCategory))
-          );
-
-          return matchCustom || matchCategory;
+          const pCustom = (p.customCollection || "").trim().toLowerCase();
+          return pCustom === colLower || pCustom.includes(colLower);
         });
+      } else {
+        // "All" collections: prioritize garments belonging to custom collections
+        const colGarments = result.filter((p) => Boolean(p.customCollection));
+        if (colGarments.length > 0) {
+          result = colGarments;
+        }
+      }
+    }
+    // 2. Scope by Wardrobe Type
+    else if (activeWardrobe) {
+      const isKing = activeWardrobe.toLowerCase().includes("king");
+      result = result.filter((p) => {
+        const pDefault = (p.defaultCollection || "Queen's Wardrobe").toLowerCase();
+        return isKing ? pDefault.includes("king") : pDefault.includes("queen");
+      });
+
+      // Filter by category within that wardrobe
+      if (selectedCategory !== "All") {
+        const catLower = selectedCategory.trim().toLowerCase();
+        result = result.filter(
+          (p) => (p.category || "").trim().toLowerCase() === catLower
+        );
+      }
+    }
+    // 3. Fallback general category filter
+    else if (selectedCategory !== "All") {
+      const catLower = selectedCategory.trim().toLowerCase();
+      if (catLower.includes("queen")) {
+        result = result.filter((p) =>
+          (p.defaultCollection || "Queen's Wardrobe").toLowerCase().includes("queen")
+        );
+      } else if (catLower.includes("king")) {
+        result = result.filter((p) =>
+          (p.defaultCollection || "Queen's Wardrobe").toLowerCase().includes("king")
+        );
+      } else {
+        result = result.filter(
+          (p) => (p.category || "").trim().toLowerCase() === catLower
+        );
       }
     }
 
+    // Price filtering
     result = result.filter(
       (p) =>
         (p.discountPrice || p.basePrice) >= priceRange[0] &&
-        (p.discountPrice || p.basePrice) <= priceRange[1],
+        (p.discountPrice || p.basePrice) <= priceRange[1]
     );
 
+    // Sorting
     if (sortBy === "price-low") {
       result.sort(
         (a, b) =>
-          (a.discountPrice || a.basePrice) - (b.discountPrice || b.basePrice),
+          (a.discountPrice || a.basePrice) - (b.discountPrice || b.basePrice)
       );
-    }
-
-    if (sortBy === "price-high") {
+    } else if (sortBy === "price-high") {
       result.sort(
         (a, b) =>
-          (b.discountPrice || b.basePrice) - (a.discountPrice || a.basePrice),
+          (b.discountPrice || b.basePrice) - (a.discountPrice || a.basePrice)
       );
     }
 
     return result;
-  }, [selectedCategory, priceRange, sortBy, products]);
+  }, [
+    isCollectionsMode,
+    activeCollection,
+    activeWardrobe,
+    selectedCategory,
+    priceRange,
+    sortBy,
+    products,
+  ]);
+
+  const activeCollectionObj = useMemo(() => {
+    if (!activeCollection) return null;
+    return customCollectionsList.find(
+      (c) => c.name.toLowerCase() === activeCollection.toLowerCase()
+    );
+  }, [activeCollection, customCollectionsList]);
+
+  const handlePillClick = (pill: string) => {
+    if (isCollectionsMode) {
+      if (pill === "All") {
+        setActiveCollection(null);
+        router.push("/shop?view=collections");
+      } else {
+        setActiveCollection(pill);
+        router.push(
+          `/shop?view=collections&collection=${encodeURIComponent(pill)}`
+        );
+      }
+      return;
+    }
+
+    if (!activeWardrobe) {
+      if (pill.includes("Queen")) {
+        setActiveWardrobe("Queen's Wardrobe");
+        setSelectedCategory("All");
+        router.push("/shop?wardrobe=Queen%27s%20Wardrobe");
+        return;
+      }
+      if (pill.includes("King")) {
+        setActiveWardrobe("King's Wardrobe");
+        setSelectedCategory("All");
+        router.push("/shop?wardrobe=King%27s%20Wardrobe");
+        return;
+      }
+    }
+
+    setSelectedCategory(pill);
+    if (activeWardrobe) {
+      if (pill === "All") {
+        router.push(`/shop?wardrobe=${encodeURIComponent(activeWardrobe)}`);
+      } else {
+        router.push(
+          `/shop?wardrobe=${encodeURIComponent(activeWardrobe)}&category=${encodeURIComponent(pill)}`
+        );
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -181,7 +310,7 @@ export default function ShopClient() {
             />
           </div>
           <p className="text-xs uppercase tracking-[0.25em] text-zinc-400 font-light">
-            Loading Collection...
+            Loading Wardrobe...
           </p>
         </div>
       </div>
@@ -198,17 +327,46 @@ export default function ShopClient() {
         <div className="flex flex-col space-y-8 mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/10 pb-6">
             <div className="space-y-2">
-              <span className="text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase font-medium">
-                The Wardrobe
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase font-semibold">
+                  {isCollectionsMode
+                    ? "Curated Series"
+                    : activeWardrobe || "The Wardrobe"}
+                </span>
+                {isCollectionsMode && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] font-medium border border-[#D4AF37]/30">
+                    Collections
+                  </span>
+                )}
+                {activeWardrobe && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 font-medium border border-white/10">
+                    {activeWardrobe}
+                  </span>
+                )}
+              </div>
 
-              <h1 className="font-headline text-3xl sm:text-5xl font-normal text-white uppercase">
-                {selectedCategory === "All"
+              <h1 className="font-headline text-3xl sm:text-5xl font-normal text-white uppercase tracking-tight">
+                {isCollectionsMode
+                  ? activeCollection || "Atelier Collections"
+                  : activeWardrobe
+                  ? selectedCategory === "All"
+                    ? activeWardrobe
+                    : selectedCategory
+                  : selectedCategory === "All"
                   ? "Full Collection"
                   : selectedCategory}
               </h1>
-              <p className="text-xs tracking-wider text-zinc-400 font-light">
-                Tailored dresses, shirts, and everyday refined attire
+
+              <p className="text-xs tracking-wider text-zinc-400 font-light max-w-xl">
+                {activeCollectionObj?.description
+                  ? activeCollectionObj.description
+                  : isCollectionsMode
+                  ? "Explore curated seasonal capsules and thematic atelier collections."
+                  : activeWardrobe?.includes("King")
+                  ? "Refined tailoring, poplin shirts, and modern everyday essentials."
+                  : activeWardrobe?.includes("Queen")
+                  ? "Fluid dresses, evening silhouettes, and relaxed everyday grace."
+                  : "Tailored dresses, shirts, and everyday refined attire."}
               </p>
             </div>
 
@@ -242,25 +400,29 @@ export default function ShopClient() {
             </div>
           </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex gap-2.5 overflow-x-auto pb-2 no-scrollbar">
-            {categories.map((cat) => {
-              const isSelected = selectedCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`text-[11px] tracking-wider uppercase whitespace-nowrap px-5 py-2 rounded-full border transition-all duration-300 font-medium ${
-                    isSelected
-                      ? "calm-primary-btn border-white"
-                      : "calm-glass text-zinc-300 border-white/10 hover:border-white/30 hover:text-white"
-                  }`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
+          {/* Category / Collection Filter Pills */}
+          {filterPills.length > 0 && (
+            <div className="flex gap-2.5 overflow-x-auto pb-2 no-scrollbar">
+              {filterPills.map((pill) => {
+                const isSelected = isCollectionsMode
+                  ? (activeCollection ? activeCollection.toLowerCase() === pill.toLowerCase() : pill === "All")
+                  : selectedCategory === pill;
+                return (
+                  <button
+                    key={pill}
+                    onClick={() => handlePillClick(pill)}
+                    className={`text-[11px] tracking-wider uppercase whitespace-nowrap px-5 py-2 rounded-full border transition-all duration-300 font-medium ${
+                      isSelected
+                        ? "calm-primary-btn border-white shadow-md shadow-[#D4AF37]/10"
+                        : "calm-glass text-zinc-300 border-white/10 hover:border-white/30 hover:text-white"
+                    }`}
+                  >
+                    {pill}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Products Grid */}
